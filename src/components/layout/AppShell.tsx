@@ -28,14 +28,14 @@ export function AppShell({ children }: AppShellProps) {
         Skip to main content
       </a>
       <Sidebar open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
-      <div className="min-w-0 lg:pl-64">
+      <div className="flex h-dvh min-w-0 flex-col overflow-hidden lg:pl-64">
         <Header
           menuOpen={mobileNavOpen}
           onMenuClick={() => setMobileNavOpen(true)}
         />
         <main
           id="main-content"
-          className="min-w-0 px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+          className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
         >
           {children}
         </main>

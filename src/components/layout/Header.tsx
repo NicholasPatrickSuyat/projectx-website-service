@@ -14,7 +14,7 @@ export function Header({ menuOpen, onMenuClick }: HeaderProps) {
   const current = getActiveNavItem(pathname);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur-md">
+    <header className="sticky top-0 z-30 shrink-0 border-b border-border bg-card/90 backdrop-blur-md">
       <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <button

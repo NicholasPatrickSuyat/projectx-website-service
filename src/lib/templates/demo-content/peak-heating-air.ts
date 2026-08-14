@@ -291,4 +291,14 @@ export const PEAK_HEATING_AIR_DEMO: ServiceWebsiteContent = {
   },
   footerNote:
     "Fictional demo website for Project X Website Service. Not a real HVAC company.",
+  sectionVisibility: {
+    trustStrip: true,
+    whyChooseUs: true,
+    about: true,
+    gallery: true,
+    testimonials: true,
+    serviceAreas: true,
+    faq: true,
+    finalCta: true,
+  },
 };

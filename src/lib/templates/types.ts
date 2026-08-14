@@ -4,6 +4,22 @@ export type TemplateCategory = "SERVICE_BUSINESS";
 
 export type TemplateStatus = "Available";
 
+export type ServiceIconId = "repair" | "heat" | "install" | "maintain" | "air";
+
+export type WhyIconId = "shield" | "clock" | "receipt" | "home" | "phone";
+
+export type SectionVisibilityKey =
+  | "trustStrip"
+  | "whyChooseUs"
+  | "about"
+  | "gallery"
+  | "testimonials"
+  | "serviceAreas"
+  | "faq"
+  | "finalCta";
+
+export type SectionVisibility = Record<SectionVisibilityKey, boolean>;
+
 export type CtaAction = {
   label: string;
   href: string;
@@ -52,7 +68,7 @@ export type ServiceWebsiteContent = {
     name: string;
     shortDescription: string;
     imageSrc?: string;
-    iconId?: "repair" | "heat" | "install" | "maintain" | "air";
+    iconId?: ServiceIconId;
     href?: string;
   }>;
   about: {
@@ -70,7 +86,7 @@ export type ServiceWebsiteContent = {
     id: string;
     title: string;
     description: string;
-    iconId?: "shield" | "clock" | "receipt" | "home" | "phone";
+    iconId?: WhyIconId;
   }>;
   gallery: Array<{
     id: string;
@@ -118,6 +134,7 @@ export type ServiceWebsiteContent = {
     contact: { eyebrow: string; heading: string; intro: string };
   };
   footerNote?: string;
+  sectionVisibility: SectionVisibility;
 };
 
 export type TemplateDefinition = {
@@ -128,5 +145,6 @@ export type TemplateDefinition = {
   description: string;
   status: TemplateStatus;
   previewPath: string;
+  editPath: string;
   capabilities: string[];
 };

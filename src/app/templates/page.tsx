@@ -17,8 +17,9 @@ export default function TemplatesPage() {
           Templates
         </h2>
         <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
-          Reusable website templates for client sites. Preview uses structured
-          demo content — editing and client assignment come later.
+          Reusable website templates for client sites. Preview uses demo
+          content. Edit changes stay in the current browser session until
+          persistence is added.
         </p>
       </div>
 
@@ -41,12 +42,18 @@ export default function TemplatesPage() {
             <p className="mt-3 flex-1 text-sm leading-6 text-muted">
               {template.description}
             </p>
-            <div className="mt-5">
+            <div className="mt-5 flex flex-wrap gap-2">
               <Link
                 href={template.previewPath}
-                className="inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2f6ef0]"
+                className="inline-flex items-center rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground"
               >
                 Preview
+              </Link>
+              <Link
+                href={template.editPath}
+                className="inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2f6ef0]"
+              >
+                Edit
               </Link>
             </div>
           </Panel>

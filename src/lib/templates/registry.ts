@@ -17,6 +17,7 @@ export const TEMPLATE_REGISTRY: TemplateDefinition[] = [
       "A premium single-page website for local service businesses such as HVAC, plumbing, and electrical.",
     status: "Available",
     previewPath: "/templates/service-modern-01/preview",
+    editPath: "/templates/service-modern-01/edit",
     capabilities: [
       "hero",
       "services",

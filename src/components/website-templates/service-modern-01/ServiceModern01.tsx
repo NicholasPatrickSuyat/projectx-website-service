@@ -1,6 +1,9 @@
+"use client";
+
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import type { CSSProperties } from "react";
 import type { ServiceWebsiteContent } from "@/lib/templates/types";
+import { isSectionVisible } from "@/lib/templates/content-utils";
 import { About } from "./About";
 import { Contact } from "./Contact";
 import { Faq } from "./Faq";
@@ -50,15 +53,27 @@ export function ServiceModern01({ content }: { content: ServiceWebsiteContent })
       <SiteHeader content={content} />
       <main id="main">
         <Hero content={content} />
-        <TrustStrip content={content} />
-        <Services content={content} />
-        <WhyChooseUs content={content} />
-        <About content={content} />
-        <Gallery content={content} />
-        <Testimonials content={content} />
-        <ServiceAreas content={content} />
-        <Faq content={content} />
-        <FinalCta content={content} />
+        {isSectionVisible(content, "trustStrip") && content.trustItems.length > 0 ? (
+          <TrustStrip content={content} />
+        ) : null}
+        {content.services.length > 0 ? <Services content={content} /> : null}
+        {isSectionVisible(content, "whyChooseUs") && content.whyChooseUs.length > 0 ? (
+          <WhyChooseUs content={content} />
+        ) : null}
+        {isSectionVisible(content, "about") ? <About content={content} /> : null}
+        {isSectionVisible(content, "gallery") && content.gallery.length > 0 ? (
+          <Gallery content={content} />
+        ) : null}
+        {isSectionVisible(content, "testimonials") && content.testimonials.length > 0 ? (
+          <Testimonials content={content} />
+        ) : null}
+        {isSectionVisible(content, "serviceAreas") && content.serviceAreas.length > 0 ? (
+          <ServiceAreas content={content} />
+        ) : null}
+        {isSectionVisible(content, "faq") && content.faq.length > 0 ? (
+          <Faq content={content} />
+        ) : null}
+        {isSectionVisible(content, "finalCta") ? <FinalCta content={content} /> : null}
         <Contact content={content} />
       </main>
       <SiteFooter content={content} />

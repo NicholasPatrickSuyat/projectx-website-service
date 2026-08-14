@@ -1,7 +1,13 @@
 import type { ServiceWebsiteContent } from "@/lib/templates/types";
+import {
+  getRenderableNavigation,
+  getRenderableSocialLinks,
+} from "@/lib/templates/content-utils";
 
 export function SiteFooter({ content }: { content: ServiceWebsiteContent }) {
   const year = new Date().getFullYear();
+  const navigation = getRenderableNavigation(content);
+  const socialLinks = getRenderableSocialLinks(content);
 
   return (
     <footer className="border-t border-black/5 bg-white">
@@ -21,7 +27,7 @@ export function SiteFooter({ content }: { content: ServiceWebsiteContent }) {
             Pages
           </p>
           <ul className="mt-3 space-y-2">
-            {content.navigation.map((item) => (
+            {navigation.map((item) => (
               <li key={item.href}>
                 <a href={item.href} className="text-sm text-[var(--sm-ink)]">
                   {item.label}
@@ -30,24 +36,26 @@ export function SiteFooter({ content }: { content: ServiceWebsiteContent }) {
             ))}
           </ul>
         </nav>
-        <div>
-          <p className="text-xs font-semibold tracking-[0.14em] text-[var(--sm-muted)] uppercase">
-            Connect
-          </p>
-          <ul className="mt-3 space-y-2">
-            {content.socialLinks.map((link) => (
-              <li key={link.id}>
-                <a
-                  href={link.href}
-                  className="text-sm text-[var(--sm-ink)]"
-                  rel="noreferrer noopener"
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {socialLinks.length > 0 ? (
+          <div>
+            <p className="text-xs font-semibold tracking-[0.14em] text-[var(--sm-muted)] uppercase">
+              Connect
+            </p>
+            <ul className="mt-3 space-y-2">
+              {socialLinks.map((link) => (
+                <li key={link.id}>
+                  <a
+                    href={link.href}
+                    className="text-sm text-[var(--sm-ink)]"
+                    rel="noreferrer noopener"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </div>
       <div className="border-t border-black/5 px-4 py-5 text-center text-xs text-[var(--sm-muted)] sm:px-6">
         © {year} {content.business.businessName}. Demo content only.

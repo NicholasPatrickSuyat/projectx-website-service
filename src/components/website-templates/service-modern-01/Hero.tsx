@@ -25,7 +25,7 @@ export function Hero({ content }: { content: ServiceWebsiteContent }) {
           >
             {hero.primaryCta.label}
           </a>
-          {hero.secondaryCta ? (
+          {hero.secondaryCta?.label.trim() && hero.secondaryCta.href.trim() ? (
             <a
               href={hero.secondaryCta.href}
               className="inline-flex items-center justify-center rounded-full border border-[var(--sm-primary)]/15 bg-white px-5 py-3 text-sm font-semibold text-[var(--sm-primary)]"
