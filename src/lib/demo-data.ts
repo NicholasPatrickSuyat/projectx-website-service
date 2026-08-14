@@ -1,10 +1,18 @@
 /**
- * Milestone 2 demo/placeholder data.
- * Replace this module when a real data source is added in a later milestone.
- * These values are not connected to clients, Stripe, or any database.
+ * Milestone 2 demo/placeholder data for website, support, and billing metrics.
+ * Replace these values when those systems are added in later milestones.
+ * Client list/detail data now lives in local D1, not this file.
  */
+import {
+  MODEL_A_MAINTENANCE_MONTHLY as DOMAIN_MODEL_A_MAINTENANCE,
+  MODEL_A_ONE_TIME_PRICES as DOMAIN_MODEL_A_PRICES,
+  MODEL_B_MONTHLY_PRICES as DOMAIN_MODEL_B_PRICES,
+  MODEL_B_UPDATE_MINUTES as DOMAIN_MODEL_B_MINUTES,
+  SUPPORT_PRIORITY_BY_PLAN as DOMAIN_SUPPORT_PRIORITY,
+} from "@/lib/domain";
 
-export const DEMO_DATA_NOTICE = "Demo data — not connected to a live source";
+export const DEMO_DATA_NOTICE =
+  "Website, support, and billing figures are demo data — not connected to a live source";
 
 export const SERVICE_MODELS = ["A", "B"] as const;
 export type ServiceModel = (typeof SERVICE_MODELS)[number];
@@ -45,29 +53,29 @@ export type BillingStatus = (typeof BILLING_STATUSES)[number];
 
 /** Domain constants for display only. Not a pricing engine. */
 export const MODEL_A_ONE_TIME_PRICES = {
-  Starter: 899,
-  Business: 1699,
-  Plus: 2750,
+  Starter: DOMAIN_MODEL_A_PRICES.STARTER,
+  Business: DOMAIN_MODEL_A_PRICES.BUSINESS,
+  Plus: DOMAIN_MODEL_A_PRICES.PLUS,
 } as const;
 
-export const MODEL_A_MAINTENANCE_MONTHLY = 59;
+export const MODEL_A_MAINTENANCE_MONTHLY = DOMAIN_MODEL_A_MAINTENANCE;
 
 export const MODEL_B_MONTHLY_PRICES = {
-  Starter: 79,
-  Business: 119,
-  Plus: 179,
+  Starter: DOMAIN_MODEL_B_PRICES.STARTER,
+  Business: DOMAIN_MODEL_B_PRICES.BUSINESS,
+  Plus: DOMAIN_MODEL_B_PRICES.PLUS,
 } as const;
 
 export const SUPPORT_PRIORITY_BY_PLAN: Record<Plan, SupportPriority> = {
-  Starter: "Standard",
-  Business: "Priority",
-  Plus: "Highest Priority",
+  Starter: DOMAIN_SUPPORT_PRIORITY.STARTER,
+  Business: DOMAIN_SUPPORT_PRIORITY.BUSINESS,
+  Plus: DOMAIN_SUPPORT_PRIORITY.PLUS,
 };
 
 export const MODEL_B_UPDATE_MINUTES: Record<Plan, number> = {
-  Starter: 30,
-  Business: 60,
-  Plus: 120,
+  Starter: DOMAIN_MODEL_B_MINUTES.STARTER,
+  Business: DOMAIN_MODEL_B_MINUTES.BUSINESS,
+  Plus: DOMAIN_MODEL_B_MINUTES.PLUS,
 };
 
 export type DemoClient = {

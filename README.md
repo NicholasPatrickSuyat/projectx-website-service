@@ -12,12 +12,21 @@ Project foundation only: Next.js app shell, navigation placeholders, and a demo 
 
 ```bash
 npm install
+npm run db:migrate
 npm run dev
 ```
 
 Open [http://localhost:3002](http://localhost:3002).
 
 Port 3002 is reserved for this project. Do not use port 3000.
+
+Local client records are stored in Wrangler’s local D1 emulator under `.wrangler/`. This is not a Cloudflare-hosted database.
+
+Optional development seed (never automatic):
+
+```bash
+npm run db:seed
+```
 
 ```bash
 npm run lint

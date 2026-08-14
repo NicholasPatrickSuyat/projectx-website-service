@@ -4,12 +4,24 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { SupportOverview } from "@/components/dashboard/SupportOverview";
 import { WebsiteStatusOverview } from "@/components/dashboard/WebsiteStatusOverview";
 import { Panel } from "@/components/ui/Panel";
+import { countClients } from "@/lib/clients/repository";
 import {
   DEMO_DASHBOARD_STATS,
   DEMO_DATA_NOTICE,
 } from "@/lib/demo-data";
 
-export default function DashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const totalClients = await countClients();
+  const liveClientStat = {
+    id: "clients",
+    label: "Total Clients",
+    value: String(totalClients),
+    detail: "Saved client records",
+  };
+  const demoStats = DEMO_DASHBOARD_STATS.filter((stat) => stat.id !== "clients");
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <Panel className="p-6 sm:p-7">
@@ -20,9 +32,9 @@ export default function DashboardPage() {
           Website Service dashboard
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted sm:text-[15px]">
-          Overview of client websites, managed subscriptions, and support load.
-          Figures below are demo data for Milestone 2 and will be replaced when
-          live records are connected.
+          Client totals and recent clients use saved records. Website, support,
+          and billing figures remain demo placeholders until those systems are
+          built.
         </p>
       </Panel>
 
@@ -37,7 +49,8 @@ export default function DashboardPage() {
           <p className="text-xs text-muted">{DEMO_DATA_NOTICE}</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {DEMO_DASHBOARD_STATS.map((stat) => (
+          <StatCard stat={liveClientStat} source="live" />
+          {demoStats.map((stat) => (
             <StatCard key={stat.id} stat={stat} />
           ))}
         </div>
