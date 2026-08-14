@@ -18,8 +18,9 @@ export default function TemplatesPage() {
         </h2>
         <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
           Reusable website templates for client sites. Preview uses demo
-          content. Edit changes stay in the current browser session until
-          persistence is added.
+          content. Edit opens a session-only playground and does not save a
+          client website. Saved client websites are edited from Websites or a
+          Client record.
         </p>
       </div>
 

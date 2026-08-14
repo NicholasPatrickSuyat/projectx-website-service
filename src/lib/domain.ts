@@ -45,6 +45,34 @@ export const CLIENT_STATUS_LABELS: Record<ClientStatus, string> = {
   INACTIVE: "Inactive",
 };
 
+export const WEBSITE_RECORD_STATUSES = [
+  "DRAFT",
+  "READY_FOR_APPROVAL",
+  "READY_TO_PUBLISH",
+] as const;
+export type WebsiteRecordStatus = (typeof WEBSITE_RECORD_STATUSES)[number];
+
+export const WEBSITE_RECORD_STATUS_LABELS: Record<WebsiteRecordStatus, string> =
+  {
+    DRAFT: "Draft",
+    READY_FOR_APPROVAL: "Ready for approval",
+    READY_TO_PUBLISH: "Ready to publish",
+  };
+
+export function getWebsiteStatusTransitions(
+  status: WebsiteRecordStatus,
+): WebsiteRecordStatus[] {
+  if (status === "DRAFT") {
+    return ["READY_FOR_APPROVAL"];
+  }
+
+  if (status === "READY_FOR_APPROVAL") {
+    return ["DRAFT", "READY_TO_PUBLISH"];
+  }
+
+  return ["READY_FOR_APPROVAL", "DRAFT"];
+}
+
 /** Domain constants for display only. Not stored on Client records. */
 export const MODEL_A_ONE_TIME_PRICES: Record<ClientPlan, number> = {
   STARTER: 899,

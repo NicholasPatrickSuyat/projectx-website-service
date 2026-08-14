@@ -12,7 +12,9 @@ type AppShellProps = {
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const isEditorWorkspace = /^\/templates\/[^/]+\/edit\/?$/.test(pathname);
+  const isEditorWorkspace =
+    /^\/templates\/[^/]+\/edit\/?$/.test(pathname) ||
+    /^\/websites\/[^/]+\/edit\/?$/.test(pathname);
 
   useEffect(() => {
     document.body.style.overflow = mobileNavOpen ? "hidden" : "";

@@ -26,7 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     href: "/websites",
     label: "Websites",
-    description: "Setup, status, domains, and publishing",
+    description: "Saved website drafts and internal status",
   },
   {
     href: "/templates",

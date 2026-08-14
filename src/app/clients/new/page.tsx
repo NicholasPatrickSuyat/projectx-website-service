@@ -16,8 +16,8 @@ export default function NewClientPage() {
           New Client
         </h2>
         <p className="mt-1 text-sm leading-6 text-muted">
-          Create a client business record. Website setup happens in a later
-          milestone.
+          Create a client business record. After saving, create their website
+          from the client record.
         </p>
       </div>
       <ClientForm

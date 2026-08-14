@@ -18,6 +18,8 @@ import {
   CLIENT_SERVICE_MODEL_LABELS,
   getServiceTermsSummary,
 } from "@/lib/domain";
+import { getTemplate } from "@/lib/templates/registry";
+import { getWebsiteForClient } from "@/lib/websites/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +47,9 @@ export default async function ClientDetailPage({
   if (!client) {
     notFound();
   }
+
+  const website = await getWebsiteForClient(client.id);
+  const websiteTemplate = website ? getTemplate(website.templateId) : null;
 
   const contactName = [client.contactFirstName, client.contactLastName]
     .filter(Boolean)
@@ -178,12 +183,60 @@ export default async function ClientDetailPage({
       </Panel>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Panel className="border-dashed p-5 sm:p-6">
+        <Panel className="p-5 sm:p-6">
           <h3 className="text-sm font-semibold text-foreground">Website</h3>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Website setup, templates, domains, and publishing will appear in a
-            later milestone.
-          </p>
+          {website ? (
+            <>
+              <dl className="mt-4 space-y-3 text-sm">
+                <div>
+                  <dt className="text-xs text-muted">Name</dt>
+                  <dd className="mt-1 text-foreground">{website.name}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted">Template</dt>
+                  <dd className="mt-1 text-foreground">
+                    {websiteTemplate?.displayName ?? website.templateId}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted">Status</dt>
+                  <dd className="mt-1">
+                    <StatusBadge kind="websiteRecord" value={website.status} />
+                    {website.status === "READY_TO_PUBLISH" ? (
+                      <p className="mt-1 text-xs text-muted">
+                        Internal status only. This website is not public.
+                      </p>
+                    ) : null}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted">Last updated</dt>
+                  <dd className="mt-1 text-foreground">
+                    {formatTimestamp(website.updatedAt)}
+                  </dd>
+                </div>
+              </dl>
+              <Link
+                href={`/websites/${website.id}/edit`}
+                className="mt-5 inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2f6ef0]"
+              >
+                Open Website Editor
+              </Link>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                This client does not have a website yet. V1 supports one website
+                per client.
+              </p>
+              <Link
+                href={`/clients/${client.id}/website/new`}
+                className="mt-5 inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2f6ef0]"
+              >
+                Create Website
+              </Link>
+            </>
+          )}
         </Panel>
         <Panel className="border-dashed p-5 sm:p-6">
           <h3 className="text-sm font-semibold text-foreground">Billing</h3>

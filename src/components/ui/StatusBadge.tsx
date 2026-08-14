@@ -9,12 +9,14 @@ import type {
   ClientPlan,
   ClientServiceModel,
   ClientStatus,
+  WebsiteRecordStatus,
 } from "@/lib/domain";
 import {
   CLIENT_CATEGORY_LABELS,
   CLIENT_PLAN_LABELS,
   CLIENT_SERVICE_MODEL_SHORT_LABELS,
   CLIENT_STATUS_LABELS,
+  WEBSITE_RECORD_STATUS_LABELS,
 } from "@/lib/domain";
 
 const WEBSITE_STATUS_CLASS: Record<WebsiteStatus, string> = {
@@ -44,8 +46,15 @@ const CLIENT_STATUS_CLASS: Record<ClientStatus, string> = {
   INACTIVE: "bg-slate-100 text-slate-800",
 };
 
+const WEBSITE_RECORD_STATUS_CLASS: Record<WebsiteRecordStatus, string> = {
+  DRAFT: "bg-slate-100 text-slate-800",
+  READY_FOR_APPROVAL: "bg-amber-50 text-amber-900",
+  READY_TO_PUBLISH: "bg-indigo-50 text-indigo-900",
+};
+
 type StatusBadgeProps =
   | { kind: "website"; value: WebsiteStatus }
+  | { kind: "websiteRecord"; value: WebsiteRecordStatus }
   | { kind: "billing"; value: BillingStatus }
   | { kind: "model"; value: ServiceModel }
   | { kind: "priority"; value: SupportPriority }
@@ -93,6 +102,16 @@ export function StatusBadge(props: StatusBadgeProps) {
         className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${CLIENT_STATUS_CLASS[props.value]}`}
       >
         {CLIENT_STATUS_LABELS[props.value]}
+      </span>
+    );
+  }
+
+  if (props.kind === "websiteRecord") {
+    return (
+      <span
+        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${WEBSITE_RECORD_STATUS_CLASS[props.value]}`}
+      >
+        {WEBSITE_RECORD_STATUS_LABELS[props.value]}
       </span>
     );
   }
