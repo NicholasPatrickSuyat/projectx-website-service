@@ -9,7 +9,8 @@ export default function SupportRequestsPage() {
   return (
     <ComingSoonPage
       title="Support Requests"
-      description="Support intake and plan-based priority will be tracked here in a later milestone."
+      description="Review website update requests according to client support priority."
+      emptyLabel="No support requests to display yet"
     />
   );
 }

@@ -1,4 +1,9 @@
+import { BillingOverview } from "@/components/dashboard/BillingOverview";
+import { RecentClients } from "@/components/dashboard/RecentClients";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { SupportOverview } from "@/components/dashboard/SupportOverview";
+import { WebsiteStatusOverview } from "@/components/dashboard/WebsiteStatusOverview";
+import { Panel } from "@/components/ui/Panel";
 import {
   DEMO_DASHBOARD_STATS,
   DEMO_DATA_NOTICE,
@@ -6,20 +11,20 @@ import {
 
 export default function DashboardPage() {
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <section className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-7">
+    <div className="mx-auto max-w-7xl space-y-6">
+      <Panel className="p-6 sm:p-7">
         <p className="text-xs font-medium uppercase tracking-wider text-muted">
           Internal Project X Tool
         </p>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]">
-          Website operations overview
+          Website Service dashboard
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted sm:text-[15px]">
-          Use this private admin workspace to build and manage client websites
-          from reusable templates. Figures below are placeholders for Milestone
-          1 and will be replaced when live data is connected.
+          Overview of client websites, managed subscriptions, and support load.
+          Figures below are demo data for Milestone 2 and will be replaced when
+          live records are connected.
         </p>
-      </section>
+      </Panel>
 
       <section aria-labelledby="dashboard-stats-heading">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
@@ -37,6 +42,20 @@ export default function DashboardPage() {
           ))}
         </div>
       </section>
+
+      <div className="grid gap-6 xl:grid-cols-5">
+        <div className="xl:col-span-3">
+          <RecentClients />
+        </div>
+        <div className="xl:col-span-2">
+          <WebsiteStatusOverview />
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SupportOverview />
+        <BillingOverview />
+      </div>
     </div>
   );
 }

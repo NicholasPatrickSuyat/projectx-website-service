@@ -9,7 +9,8 @@ export default function WebsitesPage() {
   return (
     <ComingSoonPage
       title="Websites"
-      description="Client website drafts, publishing status, and model assignments will appear here in a later milestone."
+      description="Manage website setup, draft/live status, domains, and publishing."
+      emptyLabel="No websites to display yet"
     />
   );
 }

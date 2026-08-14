@@ -28,12 +28,15 @@ export function AppShell({ children }: AppShellProps) {
         Skip to main content
       </a>
       <Sidebar open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
-      <div className="lg:pl-64">
+      <div className="min-w-0 lg:pl-64">
         <Header
           menuOpen={mobileNavOpen}
           onMenuClick={() => setMobileNavOpen(true)}
         />
-        <main id="main-content" className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main
+          id="main-content"
+          className="min-w-0 px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+        >
           {children}
         </main>
       </div>

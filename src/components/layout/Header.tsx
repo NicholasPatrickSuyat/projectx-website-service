@@ -19,9 +19,10 @@ export function Header({ menuOpen, onMenuClick }: HeaderProps) {
         <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
-            className="rounded-lg p-2 text-muted transition-colors hover:bg-background hover:text-foreground lg:hidden"
+            className="rounded-lg p-2 text-muted transition-colors duration-150 hover:bg-background hover:text-foreground lg:hidden"
             onClick={onMenuClick}
             aria-expanded={menuOpen}
+            aria-controls="primary-sidebar"
             aria-label="Open navigation"
           >
             <MenuIcon className="h-5 w-5" />
@@ -37,10 +38,15 @@ export function Header({ menuOpen, onMenuClick }: HeaderProps) {
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
-          <span className="hidden rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted sm:inline-flex">
-            Internal Project X Tool
+          <span className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted sm:px-3 sm:text-xs">
+            <span className="sm:hidden">Internal</span>
+            <span className="hidden sm:inline">Internal Project X Tool</span>
           </span>
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-sidebar text-xs font-semibold text-white">
+          <span
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-sidebar text-xs font-semibold text-white"
+            aria-label="Admin"
+            title="Admin"
+          >
             A
           </span>
         </div>

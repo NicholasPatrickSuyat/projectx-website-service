@@ -9,7 +9,8 @@ export default function TemplatesPage() {
   return (
     <ComingSoonPage
       title="Templates"
-      description="Reusable website templates for Service Business and later categories will be added in a later milestone."
+      description="Manage reusable Service Business, Restaurant/Food, and Salon/Beauty website templates."
+      emptyLabel="No templates to display yet"
     />
   );
 }

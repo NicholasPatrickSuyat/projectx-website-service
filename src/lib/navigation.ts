@@ -16,17 +16,17 @@ export const NAV_ITEMS: NavItem[] = [
   {
     href: "/",
     label: "Dashboard",
-    description: "Overview of website operations",
+    description: "Website Service operations overview",
   },
   {
     href: "/clients",
     label: "Clients",
-    description: "Client records and assignments",
+    description: "Client businesses, models, and plans",
   },
   {
     href: "/websites",
     label: "Websites",
-    description: "Client websites and build status",
+    description: "Setup, status, domains, and publishing",
   },
   {
     href: "/templates",
@@ -36,23 +36,24 @@ export const NAV_ITEMS: NavItem[] = [
   {
     href: "/support-requests",
     label: "Support Requests",
-    description: "Incoming support and plan priority",
+    description: "Update requests by support priority",
   },
   {
     href: "/settings",
     label: "Settings",
-    description: "Internal application settings",
+    description: "Internal tool settings",
   },
 ];
 
+export function isActiveNavItem(pathname: string, href: NavHref): boolean {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export function getActiveNavItem(pathname: string): NavItem {
-  const match = NAV_ITEMS.find((item) => {
-    if (item.href === "/") {
-      return pathname === "/";
-    }
-
-    return pathname === item.href || pathname.startsWith(`${item.href}/`);
-  });
-
+  const match = NAV_ITEMS.find((item) => isActiveNavItem(pathname, item.href));
   return match ?? NAV_ITEMS[0]!;
 }

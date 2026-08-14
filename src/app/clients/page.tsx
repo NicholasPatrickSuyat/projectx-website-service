@@ -9,7 +9,8 @@ export default function ClientsPage() {
   return (
     <ComingSoonPage
       title="Clients"
-      description="Client records, business categories, models, and plans will be managed here in a later milestone."
+      description="Manage client businesses, service models, plans, and contact information."
+      emptyLabel="No client records to display yet"
     />
   );
 }

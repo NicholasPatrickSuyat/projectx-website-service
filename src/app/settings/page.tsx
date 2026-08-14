@@ -9,7 +9,8 @@ export default function SettingsPage() {
   return (
     <ComingSoonPage
       title="Settings"
-      description="Internal application settings will be configured here in a later milestone."
+      description="Configure internal Project X Website Service settings and future integrations."
+      emptyLabel="No settings to configure yet"
     />
   );
 }
