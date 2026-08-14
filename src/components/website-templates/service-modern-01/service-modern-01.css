@@ -1,0 +1,52 @@
+.sm01 {
+  --sm-primary: #16324f;
+  --sm-accent: #c2783a;
+  --sm-secondary: #eef3f7;
+  --sm-cream: #f4efe8;
+  --sm-ink: #142033;
+  --sm-muted: #5d6b78;
+  --sm-surface: #ffffff;
+  min-height: 100dvh;
+  overflow-x: clip;
+  background: var(--sm-cream);
+  color: var(--sm-ink);
+  font-family: var(--font-sm-sans), ui-sans-serif, system-ui, sans-serif;
+  scroll-behavior: smooth;
+}
+
+.sm01-display {
+  font-family: var(--font-sm-display), Georgia, "Times New Roman", serif;
+}
+
+.sm01 a:focus-visible,
+.sm01 button:focus-visible,
+.sm01 summary:focus-visible {
+  outline: 2px solid var(--sm-accent);
+  outline-offset: 3px;
+}
+
+.sm01-reveal {
+  animation: sm01-fade-up 0.7s ease both;
+}
+
+@keyframes sm01-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sm01,
+  .sm01-reveal,
+  .sm01 * {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
