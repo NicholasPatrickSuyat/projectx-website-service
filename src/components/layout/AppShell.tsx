@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 
@@ -9,7 +10,9 @@ type AppShellProps = {
 };
 
 export function AppShell({ children }: AppShellProps) {
+  const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const isEditorWorkspace = /^\/templates\/[^/]+\/edit\/?$/.test(pathname);
 
   useEffect(() => {
     document.body.style.overflow = mobileNavOpen ? "hidden" : "";
@@ -35,7 +38,11 @@ export function AppShell({ children }: AppShellProps) {
         />
         <main
           id="main-content"
-          className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+          className={
+            isEditorWorkspace
+              ? "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+              : "min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+          }
         >
           {children}
         </main>

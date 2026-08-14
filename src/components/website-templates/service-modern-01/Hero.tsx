@@ -28,7 +28,7 @@ export function Hero({ content }: { content: ServiceWebsiteContent }) {
           {hero.secondaryCta?.label.trim() && hero.secondaryCta.href.trim() ? (
             <a
               href={hero.secondaryCta.href}
-              className="inline-flex items-center justify-center rounded-full border border-[var(--sm-primary)]/15 bg-white px-5 py-3 text-sm font-semibold text-[var(--sm-primary)]"
+              className="inline-flex items-center justify-center rounded-full border border-[var(--sm-primary)]/15 bg-[var(--sm-surface)] px-5 py-3 text-sm font-semibold text-[var(--sm-primary)]"
             >
               {hero.secondaryCta.label}
             </a>
@@ -49,7 +49,7 @@ export function Hero({ content }: { content: ServiceWebsiteContent }) {
           />
         </div>
         {hero.supportingItem ? (
-          <div className="absolute -bottom-4 left-4 rounded-2xl border border-black/5 bg-white px-4 py-3 shadow-lg sm:left-6">
+          <div className="absolute -bottom-4 left-4 rounded-2xl border border-black/5 bg-[var(--sm-surface)] px-4 py-3 shadow-lg sm:left-6">
             <p className="text-[11px] font-medium tracking-wide text-[var(--sm-muted)] uppercase">
               {hero.supportingItem.label}
             </p>

@@ -147,9 +147,17 @@ type ColorFieldProps = {
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  hint?: string;
 };
 
-export function ColorField({ id, label, value, onChange, error }: ColorFieldProps) {
+export function ColorField({
+  id,
+  label,
+  value,
+  onChange,
+  error,
+  hint,
+}: ColorFieldProps) {
   const pickerValue = /^#([0-9a-fA-F]{6})$/.test(value) ? value : "#000000";
 
   return (
@@ -175,6 +183,7 @@ export function ColorField({ id, label, value, onChange, error }: ColorFieldProp
           spellCheck={false}
         />
       </div>
+      {hint ? <FieldHint>{hint}</FieldHint> : null}
       <FieldError message={error} />
     </div>
   );

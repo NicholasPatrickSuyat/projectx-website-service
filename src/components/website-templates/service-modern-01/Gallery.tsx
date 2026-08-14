@@ -12,7 +12,7 @@ export function Gallery({ content }: { content: ServiceWebsiteContent }) {
       </h2>
       <ul className="mt-10 grid gap-4 sm:grid-cols-2">
         {content.gallery.map((item) => (
-          <li key={item.id} className="overflow-hidden rounded-[1.25rem] bg-white">
+          <li key={item.id} className="overflow-hidden rounded-[1.25rem] bg-[var(--sm-surface)]">
             <Image
               src={item.imageSrc}
               alt={item.alt}

@@ -17,7 +17,7 @@ export function Services({ content }: { content: ServiceWebsiteContent }) {
           return (
             <article
               key={service.id}
-              className="rounded-[1.25rem] border border-black/5 bg-white p-6 shadow-[0_8px_30px_rgba(20,32,51,0.04)] transition-transform duration-200 hover:-translate-y-1"
+              className="rounded-[1.25rem] border border-black/5 bg-[var(--sm-surface)] p-6 shadow-[0_8px_30px_rgba(20,32,51,0.04)] transition-transform duration-200 hover:-translate-y-1"
             >
               <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--sm-secondary)] text-[var(--sm-primary)]">
                 <Icon className="h-5 w-5" />

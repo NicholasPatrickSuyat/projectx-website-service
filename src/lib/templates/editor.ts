@@ -144,6 +144,12 @@ export function validateContent(content: ServiceWebsiteContent): EditorErrors {
   ) {
     errors["branding.secondaryColor"] = "Use a hex color like #eef3f7.";
   }
+  if (!isValidHexColor(content.branding.backgroundColor)) {
+    errors["branding.backgroundColor"] = "Use a hex color like #f4efe8.";
+  }
+  if (!isValidHexColor(content.branding.surfaceColor)) {
+    errors["branding.surfaceColor"] = "Use a hex color like #ffffff.";
+  }
 
   if (!content.hero.headline.trim()) {
     errors["hero.headline"] = "Headline is required.";

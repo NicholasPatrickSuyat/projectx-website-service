@@ -182,6 +182,32 @@ export function BrandingPanel({ content, errors, onUpdate }: PanelProps) {
           }
         />
       </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ColorField
+          id="backgroundColor"
+          label="Background color"
+          value={content.branding.backgroundColor}
+          error={errors["branding.backgroundColor"]}
+          hint="Main page background behind Hero, Services, About, Gallery, and Contact."
+          onChange={(value) =>
+            onUpdate((draft) => {
+              draft.branding.backgroundColor = value;
+            })
+          }
+        />
+        <ColorField
+          id="surfaceColor"
+          label="Surface / section color"
+          value={content.branding.surfaceColor}
+          error={errors["branding.surfaceColor"]}
+          hint="Cards and contrasting bands such as Trust, Reviews, FAQ, and the footer."
+          onChange={(value) =>
+            onUpdate((draft) => {
+              draft.branding.surfaceColor = value;
+            })
+          }
+        />
+      </div>
       <FieldHint>
         Fonts, layout, and corner radius stay with Service Modern 01.
       </FieldHint>

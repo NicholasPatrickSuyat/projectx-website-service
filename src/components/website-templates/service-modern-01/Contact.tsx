@@ -26,7 +26,7 @@ export function Contact({ content }: { content: ServiceWebsiteContent }) {
           phoneDigits ? (
             <a
               href={`tel:${phoneDigits}`}
-              className="rounded-[1.25rem] border border-black/5 bg-white p-5"
+              className="rounded-[1.25rem] border border-black/5 bg-[var(--sm-surface)] p-5"
             >
               <PhoneIcon className="h-5 w-5 text-[var(--sm-accent)]" />
               <p className="mt-3 text-xs font-medium tracking-wide text-[var(--sm-muted)] uppercase">
@@ -35,7 +35,7 @@ export function Contact({ content }: { content: ServiceWebsiteContent }) {
               <p className="mt-1 text-sm font-semibold">{phone}</p>
             </a>
           ) : (
-            <div className="rounded-[1.25rem] border border-black/5 bg-white p-5">
+            <div className="rounded-[1.25rem] border border-black/5 bg-[var(--sm-surface)] p-5">
               <PhoneIcon className="h-5 w-5 text-[var(--sm-accent)]" />
               <p className="mt-3 text-xs font-medium tracking-wide text-[var(--sm-muted)] uppercase">
                 Phone
@@ -47,7 +47,7 @@ export function Contact({ content }: { content: ServiceWebsiteContent }) {
         {email ? (
           <a
             href={`mailto:${email}`}
-            className="rounded-[1.25rem] border border-black/5 bg-white p-5"
+            className="rounded-[1.25rem] border border-black/5 bg-[var(--sm-surface)] p-5"
           >
             <MailIcon className="h-5 w-5 text-[var(--sm-accent)]" />
             <p className="mt-3 text-xs font-medium tracking-wide text-[var(--sm-muted)] uppercase">
@@ -57,7 +57,7 @@ export function Contact({ content }: { content: ServiceWebsiteContent }) {
           </a>
         ) : null}
         {address ? (
-          <div className="rounded-[1.25rem] border border-black/5 bg-white p-5">
+          <div className="rounded-[1.25rem] border border-black/5 bg-[var(--sm-surface)] p-5">
             <MapPinIcon className="h-5 w-5 text-[var(--sm-accent)]" />
             <p className="mt-3 text-xs font-medium tracking-wide text-[var(--sm-muted)] uppercase">
               Address
@@ -66,7 +66,7 @@ export function Contact({ content }: { content: ServiceWebsiteContent }) {
           </div>
         ) : null}
         {hours.length > 0 ? (
-          <div className="rounded-[1.25rem] border border-black/5 bg-white p-5">
+          <div className="rounded-[1.25rem] border border-black/5 bg-[var(--sm-surface)] p-5">
             <p className="text-xs font-medium tracking-wide text-[var(--sm-muted)] uppercase">
               Hours
             </p>

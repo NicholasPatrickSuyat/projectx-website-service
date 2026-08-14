@@ -40,6 +40,8 @@ export type ServiceWebsiteContent = {
     primaryColor: string;
     accentColor: string;
     secondaryColor?: string;
+    backgroundColor: string;
+    surfaceColor: string;
     theme: "light" | "dark";
   };
   seo?: {

@@ -2,7 +2,7 @@ import type { ServiceWebsiteContent } from "@/lib/templates/types";
 
 export function Testimonials({ content }: { content: ServiceWebsiteContent }) {
   return (
-    <section id="testimonials" className="scroll-mt-24 bg-white py-16 sm:py-20">
+    <section id="testimonials" className="scroll-mt-24 bg-[var(--sm-surface)] py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--sm-accent)] uppercase">
           {content.sections.testimonials.eyebrow}

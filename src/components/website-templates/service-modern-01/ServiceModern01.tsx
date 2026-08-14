@@ -36,6 +36,8 @@ export function ServiceModern01({ content }: { content: ServiceWebsiteContent })
     "--sm-primary": content.branding.primaryColor,
     "--sm-accent": content.branding.accentColor,
     "--sm-secondary": content.branding.secondaryColor ?? "#eef3f7",
+    "--sm-background": content.branding.backgroundColor,
+    "--sm-surface": content.branding.surfaceColor,
   } as CSSProperties;
 
   return (

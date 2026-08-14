@@ -19,6 +19,8 @@ export const PEAK_HEATING_AIR_DEMO: ServiceWebsiteContent = {
     primaryColor: "#16324f",
     accentColor: "#c2783a",
     secondaryColor: "#eef3f7",
+    backgroundColor: "#f4efe8",
+    surfaceColor: "#ffffff",
     theme: "light",
   },
   seo: {

@@ -2,13 +2,13 @@
   --sm-primary: #16324f;
   --sm-accent: #c2783a;
   --sm-secondary: #eef3f7;
-  --sm-cream: #f4efe8;
+  --sm-background: #f4efe8;
+  --sm-surface: #ffffff;
   --sm-ink: #142033;
   --sm-muted: #5d6b78;
-  --sm-surface: #ffffff;
   min-height: 100dvh;
   overflow-x: clip;
-  background: var(--sm-cream);
+  background: var(--sm-background);
   color: var(--sm-ink);
   font-family: var(--font-sm-sans), ui-sans-serif, system-ui, sans-serif;
   scroll-behavior: smooth;

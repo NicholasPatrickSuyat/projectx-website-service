@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ServiceModern01 } from "@/components/website-templates/service-modern-01/ServiceModern01";
-import { Panel } from "@/components/ui/Panel";
 import {
   cloneContent,
   syncSharedContactFields,
@@ -13,90 +12,15 @@ import type {
   ServiceWebsiteContent,
   TemplateDefinition,
 } from "@/lib/templates/types";
+import { EditorForm, type EditorPanelId } from "./EditorForm";
 import {
-  AboutPanel,
-  BrandingPanel,
-  BusinessPanel,
-  ContactPanel,
-  FaqPanel,
-  GalleryPanel,
-  HeroPanel,
-  ServiceAreasPanel,
-  ServicesPanel,
-  SocialPanel,
-  TestimonialsPanel,
-  VisibilityPanel,
-  WhyChooseUsPanel,
-  type EditorUpdate,
-} from "./panels";
+  LivePreview,
+  PREVIEW_DEVICES,
+  type PreviewDevice,
+} from "./LivePreview";
+import type { EditorUpdate } from "./panels";
 
-type EditorPanelId =
-  | "business"
-  | "branding"
-  | "hero"
-  | "services"
-  | "about"
-  | "whyChooseUs"
-  | "gallery"
-  | "testimonials"
-  | "serviceAreas"
-  | "faq"
-  | "contact"
-  | "social"
-  | "visibility";
-
-const NAV_GROUPS: Array<{
-  label: string;
-  items: Array<{ id: EditorPanelId; label: string }>;
-}> = [
-  {
-    label: "General",
-    items: [
-      { id: "business", label: "Business" },
-      { id: "branding", label: "Branding" },
-    ],
-  },
-  {
-    label: "Content",
-    items: [
-      { id: "hero", label: "Hero" },
-      { id: "services", label: "Services" },
-      { id: "about", label: "About" },
-      { id: "whyChooseUs", label: "Why choose us" },
-      { id: "gallery", label: "Gallery" },
-      { id: "testimonials", label: "Testimonials" },
-      { id: "serviceAreas", label: "Service areas" },
-      { id: "faq", label: "FAQ" },
-    ],
-  },
-  {
-    label: "Contact",
-    items: [
-      { id: "contact", label: "Contact info" },
-      { id: "social", label: "Social links" },
-    ],
-  },
-  {
-    label: "Sections",
-    items: [{ id: "visibility", label: "On / Off" }],
-  },
-];
-
-const PANEL_TITLES: Record<EditorPanelId, string> = {
-  business: "Business",
-  branding: "Branding",
-  hero: "Hero",
-  services: "Services",
-  about: "About",
-  whyChooseUs: "Why choose us",
-  gallery: "Gallery",
-  testimonials: "Testimonials",
-  serviceAreas: "Service areas",
-  faq: "FAQ",
-  contact: "Contact info",
-  social: "Social links",
-  visibility: "Section visibility",
-};
+type WorkspacePane = "editor" | "preview";
 
 type WebsiteEditorProps = {
   template: TemplateDefinition;
@@ -108,11 +32,13 @@ export function WebsiteEditor({ template, initialContent }: WebsiteEditorProps) 
     syncSharedContactFields(cloneContent(initialContent)),
   );
   const [panel, setPanel] = useState<EditorPanelId>("business");
-  const [showErrors, setShowErrors] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [device, setDevice] = useState<PreviewDevice>("desktop");
+  const [workspacePane, setWorkspacePane] = useState<WorkspacePane>("editor");
+  const [focusPreview, setFocusPreview] = useState(false);
   const [resetNotice, setResetNotice] = useState(false);
 
-  const errors = showErrors ? validateContent(content) : {};
+  const errors = validateContent(content);
+  const errorCount = Object.keys(errors).length;
 
   const onUpdate: EditorUpdate = (updater) => {
     setContent((current) => {
@@ -124,235 +50,189 @@ export function WebsiteEditor({ template, initialContent }: WebsiteEditorProps) 
   };
 
   useEffect(() => {
-    if (!previewOpen) {
+    if (!focusPreview) {
       return;
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setPreviewOpen(false);
+        setFocusPreview(false);
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [previewOpen]);
-
-  const navItems = useMemo(
-    () => NAV_GROUPS.flatMap((group) => group.items),
-    [],
-  );
-
-  function openPreview() {
-    setShowErrors(true);
-    const nextErrors = validateContent(content);
-    if (Object.keys(nextErrors).length > 0) {
-      setPreviewOpen(false);
-      return;
-    }
-    setPreviewOpen(true);
-  }
+  }, [focusPreview]);
 
   function resetToDemo() {
     const confirmed = window.confirm(
-      "Reset all editor fields back to the Peak Heating & Air demo content? Current session changes will be discarded.",
+      "Reset all editor fields back to the original demo content? Current session changes will be discarded.",
     );
     if (!confirmed) {
       return;
     }
     setContent(syncSharedContactFields(cloneContent(initialContent)));
-    setShowErrors(false);
-    setPreviewOpen(false);
     setResetNotice(true);
+    setFocusPreview(false);
   }
 
-  const errorCount = Object.keys(errors).length;
+  const toolbarButton =
+    "inline-flex items-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-background";
+  const toolbarButtonPrimary =
+    "inline-flex items-center rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-[#2f6ef0]";
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-            Website Editor
-          </h2>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
-            Editing {template.displayName} with structured demo content. Changes
-            stay in this tab only and are not saved to the database. Refreshing
-            restores the demo.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={openPreview}
-            className="inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2f6ef0]"
-          >
-            Preview current changes
-          </button>
-          <Link
-            href={template.previewPath}
-            className="inline-flex items-center rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground"
-          >
-            Open demo preview
-          </Link>
-          <button
-            type="button"
-            onClick={resetToDemo}
-            className="inline-flex items-center rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground"
-          >
-            Reset to demo
-          </button>
-        </div>
-      </div>
+    <div
+      className={`flex min-h-0 flex-1 flex-col bg-background ${
+        focusPreview ? "fixed inset-0 z-[70]" : "h-full"
+      }`}
+    >
+      <div className="shrink-0 border-b border-border bg-card px-3 py-3 sm:px-4">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
+                {focusPreview ? "Preview" : "Website Editor"}
+              </h2>
+              <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-900">
+                Session only
+              </span>
+            </div>
+            <p className="mt-1 text-xs leading-5 text-muted sm:text-sm">
+              {focusPreview
+                ? `Showing current unsaved ${template.displayName} edits. Press Escape or Back to editor to return.`
+                : `Editing ${template.displayName}. Changes update the live preview immediately and are not saved. Refreshing restores the demo.`}
+            </p>
+          </div>
 
-      {resetNotice ? (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          Editor restored to the original demo content.
-        </p>
-      ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {focusPreview ? null : (
+              <div className="flex rounded-lg border border-border bg-background p-0.5 xl:hidden">
+                {(["editor", "preview"] as const).map((pane) => {
+                  const active = workspacePane === pane;
+                  return (
+                    <button
+                      key={pane}
+                      type="button"
+                      onClick={() => setWorkspacePane(pane)}
+                      aria-pressed={active}
+                      className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+                        active
+                          ? "bg-card text-foreground shadow-sm"
+                          : "text-muted hover:text-foreground"
+                      }`}
+                    >
+                      {pane === "editor" ? "Edit" : "Preview"}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-      {errorCount > 0 ? (
-        <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
-          Fix {errorCount === 1 ? "1 field" : `${errorCount} fields`} before
-          previewing current changes.
-        </p>
-      ) : null}
-
-      <div className="grid gap-6 lg:grid-cols-[13.5rem_minmax(0,1fr)]">
-        <nav aria-label="Editor sections" className="lg:sticky lg:top-0 lg:self-start">
-          <div className="lg:hidden">
-            <label htmlFor="editor-panel" className="sr-only">
-              Editor section
-            </label>
-            <select
-              id="editor-panel"
-              value={panel}
-              onChange={(event) => setPanel(event.target.value as EditorPanelId)}
-              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
+            <div
+              className="flex rounded-lg border border-border bg-background p-0.5"
+              role="group"
+              aria-label="Preview device"
             >
-              {navItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="hidden space-y-4 lg:block">
-            {NAV_GROUPS.map((group) => (
-              <div key={group.label}>
-                <p className="px-2 text-[11px] font-semibold tracking-[0.14em] text-muted uppercase">
-                  {group.label}
-                </p>
-                <ul className="mt-2 space-y-1">
-                  {group.items.map((item) => {
-                    const active = panel === item.id;
-                    return (
-                      <li key={item.id}>
-                        <button
-                          type="button"
-                          onClick={() => setPanel(item.id)}
-                          aria-current={active ? "page" : undefined}
-                          className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium ${
-                            active
-                              ? "bg-accent/10 text-foreground"
-                              : "text-muted hover:bg-card hover:text-foreground"
-                          }`}
-                        >
-                          {item.label}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </nav>
+              {PREVIEW_DEVICES.map((item) => {
+                const active = device === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setDevice(item.id)}
+                    aria-pressed={active}
+                    title={item.hint}
+                    className={`rounded-md px-2.5 py-1.5 text-xs font-medium sm:text-sm ${
+                      active
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted hover:text-foreground"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
 
-        <Panel className="p-5 sm:p-6">
-          <h3 className="text-base font-semibold tracking-tight text-foreground">
-            {PANEL_TITLES[panel]}
-          </h3>
-          <div className="mt-5">
-            {panel === "business" ? (
-              <BusinessPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "branding" ? (
-              <BrandingPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "hero" ? (
-              <HeroPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "services" ? (
-              <ServicesPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "about" ? (
-              <AboutPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "whyChooseUs" ? (
-              <WhyChooseUsPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "gallery" ? (
-              <GalleryPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "testimonials" ? (
-              <TestimonialsPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "serviceAreas" ? (
-              <ServiceAreasPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "faq" ? (
-              <FaqPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "contact" ? (
-              <ContactPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "social" ? (
-              <SocialPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-            {panel === "visibility" ? (
-              <VisibilityPanel content={content} errors={errors} onUpdate={onUpdate} />
-            ) : null}
-          </div>
-        </Panel>
-      </div>
-
-      {previewOpen ? (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/60 p-4 sm:p-6"
-          role="presentation"
-          onClick={() => setPreviewOpen(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="editor-preview-title"
-            className="relative my-4 w-full max-w-6xl overflow-hidden rounded-2xl bg-white shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3">
-              <div>
-                <h2 id="editor-preview-title" className="text-sm font-semibold">
-                  Current changes preview
-                </h2>
-                <p className="text-xs text-muted">
-                  Session only. This is not the Milestone 6 live split-screen preview.
-                </p>
-              </div>
+            {focusPreview ? (
               <button
                 type="button"
-                onClick={() => setPreviewOpen(false)}
-                className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium"
+                onClick={() => setFocusPreview(false)}
+                className={toolbarButtonPrimary}
               >
-                Close
+                Back to editor
               </button>
-            </div>
-            <div className="max-h-[80vh] overflow-auto">
-              <ServiceModern01 content={content} />
-            </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setFocusPreview(true)}
+                className={toolbarButtonPrimary}
+              >
+                Expand preview
+              </button>
+            )}
+
+            {focusPreview ? null : (
+              <>
+                <Link href={template.previewPath} className={toolbarButton}>
+                  Open demo preview
+                </Link>
+                <button type="button" onClick={resetToDemo} className={toolbarButton}>
+                  Reset to demo
+                </button>
+              </>
+            )}
           </div>
         </div>
-      ) : null}
+
+        {resetNotice ? (
+          <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+            Editor restored to the original demo content.
+          </p>
+        ) : null}
+
+        {errorCount > 0 ? (
+          <p className="mt-3 text-xs text-muted" role="status">
+            {errorCount === 1 ? "1 field needs attention" : `${errorCount} fields need attention`}
+            . The live preview still updates.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+        <section
+          aria-label="Website editor"
+          className={
+            focusPreview
+              ? "hidden"
+              : `min-h-0 min-w-0 flex-col overflow-hidden border-border ${
+                  workspacePane === "editor" ? "flex flex-1" : "hidden"
+                } xl:flex xl:w-[28rem] xl:flex-none xl:border-r 2xl:w-[32rem]`
+          }
+        >
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-4">
+            <EditorForm
+              panel={panel}
+              content={content}
+              errors={errors}
+              onUpdate={onUpdate}
+              onPanelChange={setPanel}
+            />
+          </div>
+        </section>
+
+        <section
+          aria-label="Live website preview"
+          className={`min-h-0 min-w-0 flex-col ${
+            focusPreview || workspacePane === "preview" ? "flex flex-1" : "hidden"
+          } xl:flex xl:min-w-0 xl:flex-1`}
+        >
+          <LivePreview device={device}>
+            <ServiceModern01 content={content} />
+          </LivePreview>
+        </section>
+      </div>
     </div>
   );
 }

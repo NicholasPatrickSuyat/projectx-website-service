@@ -10,7 +10,7 @@ export function SiteFooter({ content }: { content: ServiceWebsiteContent }) {
   const socialLinks = getRenderableSocialLinks(content);
 
   return (
-    <footer className="border-t border-black/5 bg-white">
+    <footer className="border-t border-black/5 bg-[var(--sm-surface)]">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
         <div>
           <p className="text-sm font-semibold tracking-tight">

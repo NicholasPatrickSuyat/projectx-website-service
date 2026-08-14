@@ -13,7 +13,7 @@ export function ServiceAreas({ content }: { content: ServiceWebsiteContent }) {
         {content.serviceAreas.map((area) => (
           <li
             key={area}
-            className="rounded-full border border-black/8 bg-white px-4 py-2 text-sm font-medium text-[var(--sm-primary)]"
+            className="rounded-full border border-black/8 bg-[var(--sm-surface)] px-4 py-2 text-sm font-medium text-[var(--sm-primary)]"
           >
             {area}
           </li>

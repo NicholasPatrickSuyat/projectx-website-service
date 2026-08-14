@@ -8,7 +8,7 @@ export function Faq({ content }: { content: ServiceWebsiteContent }) {
   const baseId = useId();
 
   return (
-    <section id="faq" className="scroll-mt-24 bg-white py-16 sm:py-20">
+    <section id="faq" className="scroll-mt-24 bg-[var(--sm-surface)] py-16 sm:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--sm-accent)] uppercase">
           {content.sections.faq.eyebrow}
