@@ -1,0 +1,14 @@
+---
+description: Local development port for Project X Website Service
+alwaysApply: true
+---
+
+# Local Development Port
+
+Port 3000 is reserved for another project. Do not start this app on port 3000.
+
+- Default local URL: `http://localhost:3002`
+- `npm run dev` must use port 3002
+- Do not terminate, replace, or kill processes on port 3000
+- If port 3002 is occupied, report the conflict instead of killing another process
+- Port 3002 is local-development only; production must not depend on it

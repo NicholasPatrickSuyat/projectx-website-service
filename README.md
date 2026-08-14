@@ -15,7 +15,9 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3002](http://localhost:3002).
+
+Port 3002 is reserved for this project. Do not use port 3000.
 
 ```bash
 npm run lint
