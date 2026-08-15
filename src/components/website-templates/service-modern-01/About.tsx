@@ -1,11 +1,11 @@
-import Image from "next/image";
+import { WebsiteImage } from "@/components/media/WebsiteImage";
 import type { ServiceWebsiteContent } from "@/lib/templates/types";
 
 export function About({ content }: { content: ServiceWebsiteContent }) {
   return (
     <section id="about" className="mx-auto grid max-w-6xl scroll-mt-24 items-center gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-2">
       <div className="overflow-hidden rounded-[1.5rem]">
-        <Image
+        <WebsiteImage
           src={content.about.imageSrc}
           alt={content.about.imageAlt}
           width={1200}

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { WebsiteImage } from "@/components/media/WebsiteImage";
 import type { ServiceWebsiteContent } from "@/lib/templates/types";
 
 export function Gallery({ content }: { content: ServiceWebsiteContent }) {
@@ -13,7 +13,7 @@ export function Gallery({ content }: { content: ServiceWebsiteContent }) {
       <ul className="mt-10 grid gap-4 sm:grid-cols-2">
         {content.gallery.map((item) => (
           <li key={item.id} className="overflow-hidden rounded-[1.25rem] bg-[var(--sm-surface)]">
-            <Image
+            <WebsiteImage
               src={item.imageSrc}
               alt={item.alt}
               width={1200}

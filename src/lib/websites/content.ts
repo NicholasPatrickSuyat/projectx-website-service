@@ -18,6 +18,7 @@ import type {
   TemplateId,
   WhyIconId,
 } from "@/lib/templates/types";
+import { isAllowedWebsiteImageSrc } from "@/lib/website-media/paths";
 
 const SERVICE_ICON_IDS: ServiceIconId[] = [
   "repair",
@@ -92,6 +93,27 @@ function optionalString(value: unknown, path: string, errors: string[]): string 
     return undefined;
   }
   return parsed;
+}
+
+function websiteImageSrc(
+  value: unknown,
+  path: string,
+  errors: string[],
+  required: boolean,
+): string | undefined {
+  if (required) {
+    const src = requiredString(value, path, errors);
+    if (src && !isAllowedWebsiteImageSrc(src)) {
+      errors.push(`${path} is not a valid website image reference.`);
+    }
+    return src;
+  }
+
+  const src = optionalString(value, path, errors);
+  if (src && !isAllowedWebsiteImageSrc(src)) {
+    errors.push(`${path} is not a valid website image reference.`);
+  }
+  return src;
 }
 
 function asStringArray(value: unknown, path: string, errors: string[]): string[] {
@@ -264,7 +286,7 @@ export function parseServiceWebsiteContentValue(
         "business.businessName",
         errors,
       ),
-      logoSrc: optionalString(business.logoSrc, "business.logoSrc", errors),
+      logoSrc: websiteImageSrc(business.logoSrc, "business.logoSrc", errors, false),
       logoText: requiredString(business.logoText, "business.logoText", errors),
       tagline: optionalString(business.tagline, "business.tagline", errors),
       phone: requiredString(business.phone, "business.phone", errors),
@@ -316,7 +338,7 @@ export function parseServiceWebsiteContentValue(
         errors,
         false,
       ),
-      imageSrc: requiredString(hero.imageSrc, "hero.imageSrc", errors),
+      imageSrc: websiteImageSrc(hero.imageSrc, "hero.imageSrc", errors, true) ?? "",
       imageAlt: requiredString(hero.imageAlt, "hero.imageAlt", errors),
       supportingItem,
     },
@@ -343,7 +365,7 @@ export function parseServiceWebsiteContentValue(
           `${path}.shortDescription`,
           errors,
         ),
-        imageSrc: optionalString(item.imageSrc, `${path}.imageSrc`, errors),
+        imageSrc: websiteImageSrc(item.imageSrc, `${path}.imageSrc`, errors, false),
         iconId: parseServiceIcon(item.iconId),
         href: optionalString(item.href, `${path}.href`, errors),
       };
@@ -351,7 +373,7 @@ export function parseServiceWebsiteContentValue(
     about: {
       heading: requiredString(about.heading, "about.heading", errors),
       text: requiredString(about.text, "about.text", errors),
-      imageSrc: requiredString(about.imageSrc, "about.imageSrc", errors),
+      imageSrc: websiteImageSrc(about.imageSrc, "about.imageSrc", errors, true) ?? "",
       imageAlt: requiredString(about.imageAlt, "about.imageAlt", errors),
       highlights: parseArray(
         about.highlights,
@@ -398,7 +420,7 @@ export function parseServiceWebsiteContentValue(
       }
       return {
         id: requiredString(item.id, `${path}.id`, errors),
-        imageSrc: requiredString(item.imageSrc, `${path}.imageSrc`, errors),
+        imageSrc: websiteImageSrc(item.imageSrc, `${path}.imageSrc`, errors, true) ?? "",
         alt: requiredString(item.alt, `${path}.alt`, errors),
         caption: optionalString(item.caption, `${path}.caption`, errors),
       };

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { WebsiteImage } from "@/components/media/WebsiteImage";
 import type { ServiceWebsiteContent } from "@/lib/templates/types";
 
 export function Hero({ content }: { content: ServiceWebsiteContent }) {
@@ -38,7 +38,7 @@ export function Hero({ content }: { content: ServiceWebsiteContent }) {
 
       <div className="relative pb-8">
         <div className="overflow-hidden rounded-[1.5rem] shadow-[0_24px_60px_rgba(20,32,51,0.16)]">
-          <Image
+          <WebsiteImage
             src={hero.imageSrc}
             alt={hero.imageAlt}
             width={1600}

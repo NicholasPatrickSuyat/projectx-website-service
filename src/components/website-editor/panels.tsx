@@ -1,7 +1,6 @@
 "use client";
 
 import type { ServiceWebsiteContent } from "@/lib/templates/types";
-import { SERVICE_MODERN_01_DEMO_ASSETS } from "@/lib/templates/demo-assets";
 import {
   EDITOR_LIMITS,
   SERVICE_ICON_OPTIONS,
@@ -16,6 +15,7 @@ import {
   type EditorErrors,
 } from "@/lib/templates/editor";
 import { RepeatableCard } from "./RepeatableCard";
+import { ImagePickerField } from "./ImagePickerField";
 import {
   ColorField,
   FieldHint,
@@ -34,15 +34,9 @@ type PanelProps = {
   onUpdate: EditorUpdate;
 };
 
-const assetOptions = SERVICE_MODERN_01_DEMO_ASSETS.map((asset) => ({
-  value: asset.src,
-  label: asset.label,
-}));
-
-const logoOptions = [
-  { value: "", label: "Text fallback only" },
-  ...assetOptions,
-];
+const HERO_TEMPLATE_IMAGE = "/templates/service-modern-01/hero.jpg";
+const ABOUT_TEMPLATE_IMAGE = "/templates/service-modern-01/about.jpg";
+const GALLERY_TEMPLATE_IMAGE = "/templates/service-modern-01/gallery-1.jpg";
 
 export function BusinessPanel({ content, errors, onUpdate }: PanelProps) {
   return (
@@ -135,12 +129,12 @@ export function BrandingPanel({ content, errors, onUpdate }: PanelProps) {
           })
         }
       />
-      <SelectField
+      <ImagePickerField
         id="logoSrc"
         label="Logo image"
         value={content.business.logoSrc ?? ""}
-        options={logoOptions}
-        hint="Local demo assets only. Uploads come later."
+        allowClear
+        hint="Optional. Text fallback is used when no logo image is selected. Removing the logo does not delete uploaded files."
         onChange={(value) =>
           onUpdate((draft) => {
             draft.business.logoSrc = value || undefined;
@@ -307,11 +301,12 @@ export function HeroPanel({ content, errors, onUpdate }: PanelProps) {
           }
         />
       </div>
-      <SelectField
+      <ImagePickerField
         id="heroImage"
         label="Hero image"
         value={content.hero.imageSrc}
-        options={assetOptions}
+        templateFallbackSrc={HERO_TEMPLATE_IMAGE}
+        hint="Choose an uploaded Client image or a template asset. Clearing this field restores the template image and does not delete uploads."
         onChange={(value) =>
           onUpdate((draft) => {
             draft.hero.imageSrc = value;
@@ -523,11 +518,12 @@ export function AboutPanel({ content, errors, onUpdate }: PanelProps) {
           })
         }
       />
-      <SelectField
+      <ImagePickerField
         id="aboutImage"
         label="Image"
         value={content.about.imageSrc}
-        options={assetOptions}
+        templateFallbackSrc={ABOUT_TEMPLATE_IMAGE}
+        hint="Choose an uploaded Client image or a template asset. Restoring the template image does not delete uploads."
         onChange={(value) =>
           onUpdate((draft) => {
             draft.about.imageSrc = value;
@@ -778,11 +774,12 @@ export function GalleryPanel({ content, errors, onUpdate }: PanelProps) {
             })
           }
         >
-          <SelectField
+          <ImagePickerField
             id={`gallery-image-${item.id}`}
             label="Image"
             value={item.imageSrc}
-            options={assetOptions}
+            templateFallbackSrc={GALLERY_TEMPLATE_IMAGE}
+            hint="Choose an uploaded Client image or a template asset. Restoring the template image does not delete uploads."
             onChange={(value) =>
               onUpdate((draft) => {
                 const next = draft.gallery[index];
@@ -828,7 +825,7 @@ export function GalleryPanel({ content, errors, onUpdate }: PanelProps) {
           onUpdate((draft) => {
             if (draft.gallery.length < EDITOR_LIMITS.gallery) {
               draft.gallery.push(
-                createGalleryItem(SERVICE_MODERN_01_DEMO_ASSETS[0]?.src ?? ""),
+                createGalleryItem(GALLERY_TEMPLATE_IMAGE),
               );
             }
           })

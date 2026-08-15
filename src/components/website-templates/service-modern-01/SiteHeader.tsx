@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { WebsiteImage } from "@/components/media/WebsiteImage";
 import type { ServiceWebsiteContent } from "@/lib/templates/types";
 import { getRenderableNavigation } from "@/lib/templates/content-utils";
 import { CloseIcon, MenuIcon, PhoneIcon } from "./icons";
@@ -16,7 +16,7 @@ export function SiteHeader({ content }: { content: ServiceWebsiteContent }) {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:h-[4.25rem] sm:px-6">
         <a href="#top" className="flex min-w-0 items-center gap-2.5">
           {content.business.logoSrc ? (
-            <Image
+            <WebsiteImage
               src={content.business.logoSrc}
               alt=""
               width={36}

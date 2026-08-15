@@ -33,6 +33,7 @@ import {
 import type { EditorUpdate } from "./panels";
 import { UnsavedChangesGuard } from "./UnsavedChangesGuard";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
+import { WebsiteMediaProvider } from "./WebsiteMediaContext";
 
 type WorkspacePane = "editor" | "preview";
 type SaveUiState = "saved" | "dirty" | "saving" | "failed";
@@ -492,13 +493,25 @@ export function WebsiteEditor({
           }
         >
           <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-4">
-            <EditorForm
-              panel={panel}
-              content={content}
-              errors={errors}
-              onUpdate={onUpdate}
-              onPanelChange={setPanel}
-            />
+            {persistence ? (
+              <WebsiteMediaProvider websiteId={persistence.websiteId}>
+                <EditorForm
+                  panel={panel}
+                  content={content}
+                  errors={errors}
+                  onUpdate={onUpdate}
+                  onPanelChange={setPanel}
+                />
+              </WebsiteMediaProvider>
+            ) : (
+              <EditorForm
+                panel={panel}
+                content={content}
+                errors={errors}
+                onUpdate={onUpdate}
+                onPanelChange={setPanel}
+              />
+            )}
           </div>
         </section>
 
