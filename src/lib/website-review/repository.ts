@@ -1,3 +1,4 @@
+import type { D1Database } from "@cloudflare/workers-types";
 import { getDb } from "@/lib/db";
 import { createReviewToken, isReviewToken } from "@/lib/website-review/token";
 import {
@@ -227,6 +228,22 @@ export async function addReviewFeedback(
     message,
     createdAt: now,
   };
+}
+
+export function prepareReopenApprovedReviewSession(
+  db: D1Database,
+  websiteId: string,
+  updatedAt: string,
+) {
+  return db
+    .prepare(
+      `UPDATE website_review_sessions
+       SET status = 'OPEN',
+           approved_at = NULL,
+           updated_at = ?
+       WHERE website_id = ? AND status = 'APPROVED'`,
+    )
+    .bind(updatedAt, websiteId);
 }
 
 export async function markReviewSessionApproved(

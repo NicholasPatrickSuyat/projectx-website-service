@@ -22,6 +22,7 @@ import {
 } from "@/lib/templates/website-content";
 import {
   WEBSITE_RECORD_STATUS_LABELS,
+  canPublishWebsite,
   getWebsiteStatusTransitions,
   type WebsiteRecordStatus,
 } from "@/lib/domain";
@@ -30,6 +31,12 @@ import {
   updateWebsiteStatusAction,
 } from "@/lib/websites/actions";
 import { getSavedWebsitePreviewPath } from "@/lib/websites/types";
+import { publishWebsiteAction, listWebsitePublicationsAction } from "@/lib/website-publications/actions";
+import {
+  formatPublicationPublishedAt,
+  getPublishedWebsitePreviewPath,
+  type WebsitePublicationSummary,
+} from "@/lib/website-publications/types";
 import type { WebsiteVersionSummary } from "@/lib/website-versions/types";
 import { EditorForm, type EditorPanelId } from "./EditorForm";
 import {
@@ -40,6 +47,7 @@ import {
   SalonEditorForm,
   type SalonEditorPanelId,
 } from "./SalonEditorForm";
+import { HistoricalPublicationView } from "./HistoricalPublicationView";
 import { HistoricalVersionView } from "./HistoricalVersionView";
 import {
   LivePreview,
@@ -52,6 +60,7 @@ import type { SalonEditorUpdate } from "./salon-panels";
 import { UnsavedChangesGuard } from "./UnsavedChangesGuard";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
 import { ClientReviewPanel } from "./ClientReviewPanel";
+import { PublicationHistoryPanel } from "./PublicationHistoryPanel";
 import { WebsiteMediaProvider } from "./WebsiteMediaContext";
 
 type WorkspacePane = "editor" | "preview";
@@ -100,9 +109,18 @@ export function WebsiteEditor({
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [publicationsOpen, setPublicationsOpen] = useState(false);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
+  const [publicationRefreshKey, setPublicationRefreshKey] = useState(0);
+  const [latestPublication, setLatestPublication] =
+    useState<WebsitePublicationSummary | null>(null);
   const [viewingVersion, setViewingVersion] = useState<{
     version: WebsiteVersionSummary;
+    content: WebsiteContent;
+  } | null>(null);
+  const [viewingPublication, setViewingPublication] = useState<{
+    publication: WebsitePublicationSummary;
     content: WebsiteContent;
   } | null>(null);
 
@@ -130,7 +148,14 @@ export function WebsiteEditor({
   };
 
   useEffect(() => {
-    if (!focusPreview && !historyOpen && !viewingVersion && !reviewOpen) {
+    if (
+      !focusPreview &&
+      !historyOpen &&
+      !viewingVersion &&
+      !reviewOpen &&
+      !publicationsOpen &&
+      !viewingPublication
+    ) {
       return;
     }
 
@@ -138,8 +163,16 @@ export function WebsiteEditor({
       if (event.key !== "Escape") {
         return;
       }
+      if (viewingPublication) {
+        setViewingPublication(null);
+        return;
+      }
       if (viewingVersion) {
         setViewingVersion(null);
+        return;
+      }
+      if (publicationsOpen) {
+        setPublicationsOpen(false);
         return;
       }
       if (historyOpen) {
@@ -155,7 +188,37 @@ export function WebsiteEditor({
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusPreview, historyOpen, viewingVersion, reviewOpen]);
+  }, [
+    focusPreview,
+    historyOpen,
+    viewingVersion,
+    reviewOpen,
+    publicationsOpen,
+    viewingPublication,
+  ]);
+
+  useEffect(() => {
+    if (!persistence) {
+      return;
+    }
+
+    const websiteId = persistence.websiteId;
+    let cancelled = false;
+
+    async function loadLatestPublication() {
+      const result = await listWebsitePublicationsAction(websiteId);
+      if (cancelled || !result.ok) {
+        return;
+      }
+      setLatestPublication(result.publications[0] ?? null);
+    }
+
+    void loadLatestPublication();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [persistence, publicationRefreshKey]);
 
   function resetEditor() {
     const confirmed = window.confirm(
@@ -190,6 +253,7 @@ export function WebsiteEditor({
 
     setSaveState("saving");
     setSaveMessage(null);
+    const previousStatus = status;
 
     const result = await saveWebsiteDraftAction(
       persistence.websiteId,
@@ -207,8 +271,13 @@ export function WebsiteEditor({
     setSaveState("saved");
     setResetNotice(false);
     setHistoryRefreshKey((current) => current + 1);
+    setReviewRefreshKey((current) => current + 1);
     if (result.contentChanged && result.versionNumber) {
-      setSaveMessage(`Draft saved as Version ${result.versionNumber}.`);
+      setSaveMessage(
+        previousStatus !== "DRAFT" && result.status === "DRAFT"
+          ? `Draft saved as Version ${result.versionNumber}. Status is now Draft because the saved content changed and needs review again.`
+          : `Draft saved as Version ${result.versionNumber}.`,
+      );
     } else if (result.contentChanged === false) {
       setSaveMessage("No content changes to save.");
     } else {
@@ -244,6 +313,44 @@ export function WebsiteEditor({
       return;
     }
     applyRestoredVersion(viewingVersion.version, viewingVersion.content);
+  }
+
+  async function publishWebsite() {
+    if (!persistence) {
+      return;
+    }
+
+    if (isDirty) {
+      setSaveMessage(
+        "Save Draft before publishing. Publish freezes the saved website, not unsaved editor changes.",
+      );
+      return;
+    }
+
+    if (canPublishWebsite(status)) {
+      const confirmed = window.confirm(
+        "Publish this approved saved Website snapshot?\n\nThis creates the internal published version. It does not deploy the Website to the internet yet.",
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    setSaveState("saving");
+    setSaveMessage(null);
+    const result = await publishWebsiteAction(persistence.websiteId);
+    if (!result.ok) {
+      setSaveState("failed");
+      setSaveMessage(result.error);
+      return;
+    }
+
+    setStatus(result.status);
+    setSaveState("saved");
+    setPublicationRefreshKey((current) => current + 1);
+    setSaveMessage(
+      `Published as Publication ${result.publicationNumber}. Internal published snapshot. Public deployment is not configured yet.`,
+    );
   }
 
   async function onStatusChange(nextStatus: WebsiteRecordStatus) {
@@ -333,7 +440,9 @@ export function WebsiteEditor({
               {focusPreview
                 ? `Showing current unsaved ${template.displayName} edits. Press Escape or Back to editor to return.`
                 : persisted
-                  ? `Editing saved ${template.displayName} content. The live preview updates immediately with unsaved edits. Open Standalone Preview shows the last saved draft. Ready to publish is an internal status only — this website is not public.`
+                  ? latestPublication
+                    ? `Editing saved ${template.displayName} content. Live preview shows unsaved edits. Standalone Preview and Client Review show the last saved draft. Latest internal snapshot is Publication ${latestPublication.publicationNumber} (${formatPublicationPublishedAt(latestPublication.publishedAt)}). Public deployment is not configured yet.`
+                    : `Editing saved ${template.displayName} content. The live preview updates immediately with unsaved edits. Open Standalone Preview shows the last saved draft. Ready to publish is an internal status only — this website is not public.`
                   : `Editing ${template.displayName}. Changes update the live preview immediately and are not saved. Refreshing restores the demo.`}
             </p>
           </div>
@@ -446,7 +555,11 @@ export function WebsiteEditor({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setHistoryOpen(true)}
+                  onClick={() => {
+                    setReviewOpen(false);
+                    setPublicationsOpen(false);
+                    setHistoryOpen(true);
+                  }}
                   className={toolbarButton}
                 >
                   Version History
@@ -455,11 +568,49 @@ export function WebsiteEditor({
                   type="button"
                   onClick={() => {
                     setHistoryOpen(false);
+                    setPublicationsOpen(false);
                     setReviewOpen(true);
                   }}
                   className={toolbarButton}
                 >
                   Client Review
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHistoryOpen(false);
+                    setReviewOpen(false);
+                    setPublicationsOpen(true);
+                  }}
+                  className={toolbarButton}
+                >
+                  Publication History
+                </button>
+                {latestPublication && persistence ? (
+                  <a
+                    href={getPublishedWebsitePreviewPath(persistence.websiteId)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={toolbarButton}
+                    title="Shows the latest internal published snapshot. This is not a public website."
+                  >
+                    View Published Version
+                  </a>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => void publishWebsite()}
+                  disabled={saveState === "saving"}
+                  className={`${toolbarButtonPrimary} disabled:opacity-60`}
+                  title={
+                    isDirty
+                      ? "Save Draft before publishing. Publish freezes the saved website, not unsaved editor changes."
+                      : canPublishWebsite(status)
+                        ? "Create an internal published snapshot. This does not deploy to the internet."
+                        : "Publish is only allowed when the website status is Ready to publish."
+                  }
+                >
+                  Publish
                 </button>
                 {persistence ? (
                   <a
@@ -581,16 +732,18 @@ export function WebsiteEditor({
             focusPreview || workspacePane === "preview" ? "flex flex-1" : "hidden"
           } xl:flex xl:min-w-0 xl:flex-1`}
         >
-          <LivePreview device={device}>
-            {renderTemplate(template.id, content)}
-          </LivePreview>
+          {viewingVersion || viewingPublication ? null : (
+            <LivePreview device={device}>
+              {renderTemplate(template.id, content)}
+            </LivePreview>
+          )}
         </section>
       </div>
 
       {persistence ? (
         <VersionHistoryPanel
           websiteId={persistence.websiteId}
-          open={historyOpen && !viewingVersion}
+          open={historyOpen && !viewingVersion && !viewingPublication}
           isDirty={isDirty}
           refreshKey={historyRefreshKey}
           onClose={() => setHistoryOpen(false)}
@@ -602,10 +755,26 @@ export function WebsiteEditor({
       ) : null}
 
       {persistence ? (
+        <PublicationHistoryPanel
+          websiteId={persistence.websiteId}
+          open={publicationsOpen && !viewingPublication && !viewingVersion}
+          refreshKey={publicationRefreshKey}
+          onClose={() => setPublicationsOpen(false)}
+          onView={(publication, publicationContent) =>
+            setViewingPublication({
+              publication,
+              content: publicationContent,
+            })
+          }
+        />
+      ) : null}
+
+      {persistence ? (
         <ClientReviewPanel
           websiteId={persistence.websiteId}
           websiteStatus={status}
-          open={reviewOpen && !viewingVersion}
+          open={reviewOpen && !viewingVersion && !viewingPublication}
+          refreshKey={reviewRefreshKey}
           onClose={() => setReviewOpen(false)}
         />
       ) : null}
@@ -619,6 +788,17 @@ export function WebsiteEditor({
           onDeviceChange={setDevice}
           onBack={() => setViewingVersion(null)}
           onRestore={restoreViewingVersion}
+        />
+      ) : null}
+
+      {viewingPublication ? (
+        <HistoricalPublicationView
+          templateId={viewingPublication.publication.templateId}
+          publication={viewingPublication.publication}
+          content={viewingPublication.content}
+          device={device}
+          onDeviceChange={setDevice}
+          onBack={() => setViewingPublication(null)}
         />
       ) : null}
     </div>

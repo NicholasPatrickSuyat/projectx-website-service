@@ -18,6 +18,7 @@ type ClientReviewPanelProps = {
   websiteId: string;
   websiteStatus: WebsiteRecordStatus;
   open: boolean;
+  refreshKey?: number;
   onClose: () => void;
 };
 
@@ -25,6 +26,7 @@ export function ClientReviewPanel({
   websiteId,
   websiteStatus,
   open,
+  refreshKey = 0,
   onClose,
 }: ClientReviewPanelProps) {
   const [review, setReview] = useState<WebsiteReviewAdminView | null>(null);
@@ -61,7 +63,7 @@ export function ClientReviewPanel({
     return () => {
       cancelled = true;
     };
-  }, [open, websiteId]);
+  }, [open, websiteId, refreshKey]);
 
   async function createLink() {
     setBusy(true);

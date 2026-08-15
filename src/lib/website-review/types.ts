@@ -115,6 +115,10 @@ export function getReviewWorkflowHint(
   websiteStatus: WebsiteRecordStatus,
   reviewStatus: WebsiteReviewStatus | null,
 ): string {
+  if (websiteStatus === "PUBLISHED") {
+    return "Internal published snapshot. Public deployment is not configured yet. Client Review still shows the current saved draft.";
+  }
+
   if (reviewStatus === "APPROVED" && websiteStatus === "DRAFT") {
     return "Client approved this review. The website remains Draft because it was not marked Ready for approval.";
   }

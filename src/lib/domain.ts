@@ -49,6 +49,7 @@ export const WEBSITE_RECORD_STATUSES = [
   "DRAFT",
   "READY_FOR_APPROVAL",
   "READY_TO_PUBLISH",
+  "PUBLISHED",
 ] as const;
 export type WebsiteRecordStatus = (typeof WEBSITE_RECORD_STATUSES)[number];
 
@@ -57,6 +58,7 @@ export const WEBSITE_RECORD_STATUS_LABELS: Record<WebsiteRecordStatus, string> =
     DRAFT: "Draft",
     READY_FOR_APPROVAL: "Ready for approval",
     READY_TO_PUBLISH: "Ready to publish",
+    PUBLISHED: "Published",
   };
 
 export function getWebsiteStatusTransitions(
@@ -70,7 +72,29 @@ export function getWebsiteStatusTransitions(
     return ["DRAFT", "READY_TO_PUBLISH"];
   }
 
-  return ["READY_FOR_APPROVAL", "DRAFT"];
+  if (status === "READY_TO_PUBLISH") {
+    return ["READY_FOR_APPROVAL", "DRAFT"];
+  }
+
+  return [];
+}
+
+export function canPublishWebsite(status: WebsiteRecordStatus): boolean {
+  return status === "READY_TO_PUBLISH";
+}
+
+export function getWebsiteStatusAfterChangedSave(
+  status: WebsiteRecordStatus,
+): WebsiteRecordStatus {
+  if (
+    status === "PUBLISHED" ||
+    status === "READY_TO_PUBLISH" ||
+    status === "READY_FOR_APPROVAL"
+  ) {
+    return "DRAFT";
+  }
+
+  return status;
 }
 
 /** Domain constants for display only. Not stored on Client records. */

@@ -207,6 +207,11 @@ export default async function ClientDetailPage({
                       <p className="mt-1 text-xs text-muted">
                         Internal status only. This website is not public.
                       </p>
+                    ) : website.status === "PUBLISHED" ? (
+                      <p className="mt-1 text-xs text-muted">
+                        Internal published snapshot. Public deployment is not
+                        configured yet.
+                      </p>
                     ) : null}
                   </dd>
                 </div>

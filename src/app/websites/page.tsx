@@ -24,8 +24,8 @@ export default async function WebsitesPage() {
         </h2>
         <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
           Saved client website drafts. Create a website from a Client record.
-          Ready to publish is an internal status only — these websites are not
-          public.
+          Ready to publish and Published are internal statuses only — these
+          websites are not public.
         </p>
       </div>
 

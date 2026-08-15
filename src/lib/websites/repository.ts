@@ -1,5 +1,9 @@
 import { getDb } from "@/lib/db";
-import type { WebsiteRecordStatus } from "@/lib/domain";
+import {
+  getWebsiteStatusAfterChangedSave,
+  type WebsiteRecordStatus,
+} from "@/lib/domain";
+import { prepareReopenApprovedReviewSession } from "@/lib/website-review/repository";
 import {
   getWebsiteVersionById,
   prepareInsertWebsiteVersion,
@@ -162,21 +166,29 @@ export async function updateWebsiteContent(
   const db = await getDb();
   const now = new Date().toISOString();
   const versionId = crypto.randomUUID();
+  const nextStatus = getWebsiteStatusAfterChangedSave(existing.status);
 
   try {
     await db.batch([
-      db
-        .prepare(
-          "UPDATE websites SET content_json = ?, updated_at = ? WHERE id = ?",
-        )
-        .bind(contentJson, now, id),
+      nextStatus === existing.status
+        ? db
+            .prepare(
+              "UPDATE websites SET content_json = ?, updated_at = ? WHERE id = ?",
+            )
+            .bind(contentJson, now, id)
+        : db
+            .prepare(
+              "UPDATE websites SET content_json = ?, status = ?, updated_at = ? WHERE id = ?",
+            )
+            .bind(contentJson, nextStatus, now, id),
       prepareInsertWebsiteVersion(db, {
         id: versionId,
         websiteId: id,
         contentJson,
-        websiteStatus: existing.status,
+        websiteStatus: nextStatus,
         createdAt: now,
       }),
+      prepareReopenApprovedReviewSession(db, id, now),
     ]);
   } catch (error) {
     if (isUniqueConstraintError(error)) {

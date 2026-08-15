@@ -50,6 +50,7 @@ const WEBSITE_RECORD_STATUS_CLASS: Record<WebsiteRecordStatus, string> = {
   DRAFT: "bg-slate-100 text-slate-800",
   READY_FOR_APPROVAL: "bg-amber-50 text-amber-900",
   READY_TO_PUBLISH: "bg-indigo-50 text-indigo-900",
+  PUBLISHED: "bg-violet-50 text-violet-900",
 };
 
 type StatusBadgeProps =
