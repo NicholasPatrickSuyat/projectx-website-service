@@ -33,9 +33,24 @@ export const RESTAURANT_MODERN_01_DEMO_ASSETS: DemoAsset[] = [
   { src: "/templates/restaurant-modern-01/gallery-dessert.jpg", label: "Gallery — olive oil cake" },
 ];
 
+export const SALON_MODERN_01_DEMO_ASSETS: DemoAsset[] = [
+  { src: "/templates/salon-modern-01/hero.jpg", label: "Hero — atelier interior" },
+  { src: "/templates/salon-modern-01/intro.jpg", label: "Intro — tools still life" },
+  { src: "/templates/salon-modern-01/story.jpg", label: "Story — waiting lounge" },
+  { src: "/templates/salon-modern-01/team-mira.jpg", label: "Team — Mira Solano" },
+  { src: "/templates/salon-modern-01/team-jonah.jpg", label: "Team — Jonah Hale" },
+  { src: "/templates/salon-modern-01/team-amara.jpg", label: "Team — Amara Quinn" },
+  { src: "/templates/salon-modern-01/gallery-cut.jpg", label: "Gallery — finished cut" },
+  { src: "/templates/salon-modern-01/gallery-nails.jpg", label: "Gallery — studio manicure" },
+  { src: "/templates/salon-modern-01/gallery-spa.jpg", label: "Gallery — treatment room" },
+];
+
 export function getTemplateDemoAssets(templateId: string): DemoAsset[] {
   if (templateId === "restaurant-modern-01") {
     return RESTAURANT_MODERN_01_DEMO_ASSETS;
+  }
+  if (templateId === "salon-modern-01") {
+    return SALON_MODERN_01_DEMO_ASSETS;
   }
 
   return SERVICE_MODERN_01_DEMO_ASSETS;

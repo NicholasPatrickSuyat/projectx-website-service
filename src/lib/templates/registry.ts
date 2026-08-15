@@ -6,10 +6,12 @@ import type {
 } from "@/lib/templates/types";
 import { EMBER_AND_OLIVE_DEMO } from "@/lib/templates/demo-content/ember-and-olive";
 import { PEAK_HEATING_AIR_DEMO } from "@/lib/templates/demo-content/peak-heating-air";
+import { ROWAN_ATELIER_DEMO } from "@/lib/templates/demo-content/rowan-atelier";
 
 export const SERVICE_MODERN_01_ID = "service-modern-01" as const satisfies TemplateId;
 export const RESTAURANT_MODERN_01_ID =
   "restaurant-modern-01" as const satisfies TemplateId;
+export const SALON_MODERN_01_ID = "salon-modern-01" as const satisfies TemplateId;
 
 export const TEMPLATE_REGISTRY: TemplateDefinition[] = [
   {
@@ -56,6 +58,28 @@ export const TEMPLATE_REGISTRY: TemplateDefinition[] = [
       "reservationCta",
     ],
   },
+  {
+    id: SALON_MODERN_01_ID,
+    displayName: "Salon Modern 01",
+    category: "SALON_BEAUTY",
+    categoryLabel: "Salon / Beauty",
+    description:
+      "An editorial, image-forward single-page website for salons, barbers, nail studios, and appointment-based beauty businesses.",
+    status: "Available",
+    previewPath: "/templates/salon-modern-01/preview",
+    editPath: "/templates/salon-modern-01/edit",
+    capabilities: [
+      "hero",
+      "services",
+      "about",
+      "team",
+      "gallery",
+      "testimonials",
+      "location",
+      "faq",
+      "bookingCta",
+    ],
+  },
 ];
 
 export function listTemplates(): TemplateDefinition[] {
@@ -78,9 +102,18 @@ export function isRestaurantTemplateId(
   return id === RESTAURANT_MODERN_01_ID;
 }
 
+export function isSalonTemplateId(
+  id: string,
+): id is typeof SALON_MODERN_01_ID {
+  return id === SALON_MODERN_01_ID;
+}
+
 export function getDefaultTemplateId(category: ClientCategory): TemplateId {
   if (category === "RESTAURANT_FOOD") {
     return RESTAURANT_MODERN_01_ID;
+  }
+  if (category === "SALON_BEAUTY") {
+    return SALON_MODERN_01_ID;
   }
 
   return SERVICE_MODERN_01_ID;
@@ -93,6 +126,10 @@ export function getTemplateDemoContent(id: string): WebsiteContent | null {
 
   if (isRestaurantTemplateId(id)) {
     return EMBER_AND_OLIVE_DEMO;
+  }
+
+  if (isSalonTemplateId(id)) {
+    return ROWAN_ATELIER_DEMO;
   }
 
   return null;

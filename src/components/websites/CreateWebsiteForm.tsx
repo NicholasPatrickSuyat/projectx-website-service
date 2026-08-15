@@ -68,8 +68,8 @@ export function CreateWebsiteForm({
             </select>
             <p className="mt-1 text-xs text-muted">
               Restaurant / Food clients default to Restaurant Modern 01. Service
-              Business clients default to Service Modern 01. Salon / Beauty does
-              not have a dedicated template yet.
+              Business clients default to Service Modern 01. Salon / Beauty
+              clients default to Salon Modern 01.
             </p>
             {state?.fieldErrors?.templateId ? (
               <p className="mt-1 text-sm text-rose-700">

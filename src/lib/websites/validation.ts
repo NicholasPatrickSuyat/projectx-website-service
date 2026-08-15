@@ -5,6 +5,7 @@ import {
 } from "@/lib/domain";
 import {
   isRestaurantTemplateId,
+  isSalonTemplateId,
   isServiceTemplateId,
 } from "@/lib/templates/registry";
 import type { TemplateId } from "@/lib/templates/types";
@@ -25,7 +26,11 @@ export function isWebsiteRecordStatus(
 }
 
 export function isWebsiteTemplateId(value: string): value is TemplateId {
-  return isServiceTemplateId(value) || isRestaurantTemplateId(value);
+  return (
+    isServiceTemplateId(value) ||
+    isRestaurantTemplateId(value) ||
+    isSalonTemplateId(value)
+  );
 }
 
 export function canTransitionWebsiteStatus(

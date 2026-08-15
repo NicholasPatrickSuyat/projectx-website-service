@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   cloneContent,
 } from "@/lib/templates/editor";
-import { isRestaurantTemplateId, isServiceTemplateId } from "@/lib/templates/registry";
+import { isRestaurantTemplateId, isSalonTemplateId, isServiceTemplateId } from "@/lib/templates/registry";
 import { renderTemplate } from "@/lib/templates/render";
 import type {
   TemplateDefinition,
@@ -13,6 +13,7 @@ import type {
 } from "@/lib/templates/types";
 import {
   isRestaurantWebsiteContent,
+  isSalonWebsiteContent,
   isServiceWebsiteContent,
 } from "@/lib/templates/types";
 import {
@@ -35,6 +36,10 @@ import {
   RestaurantEditorForm,
   type RestaurantEditorPanelId,
 } from "./RestaurantEditorForm";
+import {
+  SalonEditorForm,
+  type SalonEditorPanelId,
+} from "./SalonEditorForm";
 import { HistoricalVersionView } from "./HistoricalVersionView";
 import {
   LivePreview,
@@ -43,6 +48,7 @@ import {
 } from "./LivePreview";
 import type { EditorUpdate } from "./panels";
 import type { RestaurantEditorUpdate } from "./restaurant-panels";
+import type { SalonEditorUpdate } from "./salon-panels";
 import { UnsavedChangesGuard } from "./UnsavedChangesGuard";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
 import { WebsiteMediaProvider } from "./WebsiteMediaContext";
@@ -82,9 +88,9 @@ export function WebsiteEditor({
   const [status, setStatus] = useState<WebsiteRecordStatus>(
     persistence?.status ?? "DRAFT",
   );
-  const [panel, setPanel] = useState<EditorPanelId | RestaurantEditorPanelId>(
-    "business",
-  );
+  const [panel, setPanel] = useState<
+    EditorPanelId | RestaurantEditorPanelId | SalonEditorPanelId
+  >("business");
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [workspacePane, setWorkspacePane] = useState<WorkspacePane>("editor");
   const [focusPreview, setFocusPreview] = useState(false);
@@ -525,6 +531,15 @@ export function WebsiteEditor({
                     content={content}
                     errors={errors}
                     onUpdate={onUpdate as RestaurantEditorUpdate}
+                    onPanelChange={setPanel}
+                  />
+                ) : isSalonTemplateId(template.id) &&
+                  isSalonWebsiteContent(content) ? (
+                  <SalonEditorForm
+                    panel={panel as SalonEditorPanelId}
+                    content={content}
+                    errors={errors}
+                    onUpdate={onUpdate as SalonEditorUpdate}
                     onPanelChange={setPanel}
                   />
                 ) : (

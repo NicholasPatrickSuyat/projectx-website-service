@@ -1,0 +1,50 @@
+.sa01 {
+  --sa-primary: #1c1917;
+  --sa-accent: #9a6b4f;
+  --sa-secondary: #6d7a73;
+  --sa-background: #f3efe8;
+  --sa-surface: #fbf8f3;
+  --sa-ink: #1c1917;
+  --sa-muted: #6f675e;
+  --sa-line: color-mix(in srgb, var(--sa-primary) 12%, transparent);
+  min-height: 100dvh;
+  overflow-x: clip;
+  background: var(--sa-background);
+  color: var(--sa-ink);
+  font-family: var(--font-sa-sans), ui-sans-serif, system-ui, sans-serif;
+  scroll-behavior: smooth;
+}
+
+.sa01-display {
+  font-family: var(--font-sa-display), Georgia, "Times New Roman", serif;
+}
+
+.sa01 a:focus-visible,
+.sa01 button:focus-visible,
+.sa01 summary:focus-visible {
+  outline: 2px solid var(--sa-accent);
+  outline-offset: 3px;
+}
+
+.sa01-image {
+  overflow: hidden;
+  border-radius: 1.75rem;
+}
+
+.sa01-image img {
+  transition: transform 0.7s ease;
+}
+
+.sa01-image:hover img {
+  transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sa01,
+  .sa01 * {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

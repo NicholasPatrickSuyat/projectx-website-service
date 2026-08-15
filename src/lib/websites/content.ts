@@ -8,6 +8,7 @@ import {
 import {
   getTemplateDemoContent,
   isRestaurantTemplateId,
+  isSalonTemplateId,
   isServiceTemplateId,
 } from "@/lib/templates/registry";
 import type {
@@ -22,6 +23,7 @@ import type {
 } from "@/lib/templates/types";
 import {
   isRestaurantWebsiteContent,
+  isSalonWebsiteContent,
   isServiceWebsiteContent,
 } from "@/lib/templates/types";
 import {
@@ -30,6 +32,7 @@ import {
 } from "@/lib/templates/website-content";
 import { isAllowedWebsiteImageSrc } from "@/lib/website-media/paths";
 import { parseRestaurantWebsiteContentValue } from "@/lib/websites/restaurant-content";
+import { parseSalonWebsiteContentValue } from "@/lib/websites/salon-content";
 
 const SERVICE_ICON_IDS: ServiceIconId[] = [
   "repair",
@@ -599,6 +602,9 @@ export function parseWebsiteContentValue(
   if (isRestaurantTemplateId(templateId)) {
     return parseRestaurantWebsiteContentValue(value);
   }
+  if (isSalonTemplateId(templateId)) {
+    return parseSalonWebsiteContentValue(value);
+  }
   return { ok: false, error: "That website template is not available." };
 }
 
@@ -885,6 +891,110 @@ function initializeRestaurantWebsiteContent(
   return syncWebsiteContent(templateId, content);
 }
 
+function replaceRowanIdentity(text: string, businessName: string): string {
+  return text
+    .replace(/Rowan Atelier/gi, businessName)
+    .replace(
+      /\s*This is a fictional demo business for Project X Website Service\.?/gi,
+      "",
+    )
+    .replace(
+      /\s*Rowan Atelier is fictional demo content[^.]*\./gi,
+      "",
+    )
+    .trim();
+}
+
+function initializeSalonWebsiteContent(
+  client: Client,
+  templateId: TemplateId,
+): WebsiteContent {
+  const demo = getTemplateDemoContent(templateId);
+  if (!demo || !isSalonWebsiteContent(demo)) {
+    throw new Error("That template does not have demo content.");
+  }
+
+  const content = cloneContent(demo);
+  const phone = client.phone?.trim() ?? "";
+  const email = client.email?.trim() ?? "";
+  const address = formatClientAddress(client);
+  const telHref = phone ? toTelHref(phone) : null;
+
+  content.business.businessName = client.businessName;
+  content.business.logoText = deriveLogoText(client.businessName);
+  content.business.phone = phone;
+  content.business.email = email;
+  content.business.address = address;
+
+  content.seo = {
+    title: `${client.businessName} Website`,
+    description: `Website draft for ${client.businessName}.`,
+  };
+
+  content.hero.eyebrow = "By appointment";
+  content.hero.subheadline = replaceRowanIdentity(
+    content.hero.subheadline,
+    client.businessName,
+  );
+  content.intro.heading = replaceRowanIdentity(
+    content.intro.heading,
+    client.businessName,
+  );
+  content.intro.text = `${client.businessName} website draft. Update this introduction with the client's own welcome.`;
+  content.about.heading = "Our story";
+  content.about.text = `${client.businessName} website draft. Update this Our Story section with the client's own history.`;
+  content.sections.services.heading = `Services at ${client.businessName}.`;
+  content.sections.location.heading = "Visit us, by appointment.";
+  content.sections.location.intro =
+    "Find us using the address, hours, and phone on this page.";
+  content.sections.finalCta.text =
+    "Call to inquire, or add an external booking link when the client has one.";
+  content.footerNote = `Website draft for ${client.businessName}.`;
+
+  if (phone && telHref) {
+    content.hero.secondaryCta = {
+      label: `Call ${phone}`,
+      href: telHref,
+    };
+    content.contact.cta = {
+      label: "Call Us",
+      href: telHref,
+    };
+  } else {
+    content.hero.secondaryCta = {
+      label: "View Services",
+      href: "#services",
+    };
+    content.contact.cta = {
+      label: "View Services",
+      href: "#services",
+    };
+  }
+
+  const rowanFaqIndex = content.faq.findIndex((item) =>
+    /rowan atelier/i.test(`${item.question} ${item.answer}`),
+  );
+  if (rowanFaqIndex >= 0) {
+    content.faq[rowanFaqIndex] = {
+      id: content.faq[rowanFaqIndex]?.id ?? "faq-contact",
+      question: "How can I get in touch?",
+      answer: "Call, email, or visit using the details on this page.",
+    };
+  }
+
+  content.booking = {
+    label: content.booking.label || "Book Appointment",
+    href: "",
+  };
+
+  content.socialLinks = content.socialLinks.map((link) => ({
+    ...link,
+    href: "",
+  }));
+
+  return syncWebsiteContent(templateId, content);
+}
+
 export function initializeWebsiteContent(
   client: Client,
   templateId: TemplateId,
@@ -894,6 +1004,9 @@ export function initializeWebsiteContent(
   }
   if (isRestaurantTemplateId(templateId)) {
     return initializeRestaurantWebsiteContent(client, templateId);
+  }
+  if (isSalonTemplateId(templateId)) {
+    return initializeSalonWebsiteContent(client, templateId);
   }
   throw new Error("That template does not have demo content.");
 }

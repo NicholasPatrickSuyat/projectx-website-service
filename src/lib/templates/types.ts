@@ -1,6 +1,12 @@
-export type TemplateId = "service-modern-01" | "restaurant-modern-01";
+export type TemplateId =
+  | "service-modern-01"
+  | "restaurant-modern-01"
+  | "salon-modern-01";
 
-export type TemplateCategory = "SERVICE_BUSINESS" | "RESTAURANT_FOOD";
+export type TemplateCategory =
+  | "SERVICE_BUSINESS"
+  | "RESTAURANT_FOOD"
+  | "SALON_BEAUTY";
 
 export type TemplateStatus = "Available";
 
@@ -218,7 +224,83 @@ export type RestaurantWebsiteContent = {
   sectionVisibility: RestaurantSectionVisibility;
 };
 
-export type WebsiteContent = ServiceWebsiteContent | RestaurantWebsiteContent;
+export type SalonSectionVisibilityKey =
+  | "intro"
+  | "services"
+  | "about"
+  | "team"
+  | "gallery"
+  | "testimonials"
+  | "faq"
+  | "finalCta";
+
+export type SalonSectionVisibility = Record<SalonSectionVisibilityKey, boolean>;
+
+export type SalonService = {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  duration?: string;
+  category?: string;
+  imageSrc?: string;
+  imageAlt?: string;
+};
+
+export type SalonTeamMember = {
+  id: string;
+  name: string;
+  role: string;
+  bio: string;
+  imageSrc: string;
+  imageAlt: string;
+};
+
+export type SalonWebsiteContent = {
+  business: ServiceWebsiteContent["business"];
+  branding: ServiceWebsiteContent["branding"];
+  seo?: ServiceWebsiteContent["seo"];
+  hero: ServiceWebsiteContent["hero"];
+  intro: {
+    heading: string;
+    text: string;
+    imageSrc: string;
+    imageAlt: string;
+  };
+  services: SalonService[];
+  about: {
+    heading: string;
+    text: string;
+    imageSrc: string;
+    imageAlt: string;
+  };
+  team: SalonTeamMember[];
+  gallery: ServiceWebsiteContent["gallery"];
+  testimonials: ServiceWebsiteContent["testimonials"];
+  faq: ServiceWebsiteContent["faq"];
+  booking: CtaAction;
+  contact: ServiceWebsiteContent["contact"];
+  socialLinks: ServiceWebsiteContent["socialLinks"];
+  navigation: ServiceWebsiteContent["navigation"];
+  sections: {
+    intro: { eyebrow: string; heading: string };
+    services: { eyebrow: string; heading: string };
+    about: { eyebrow: string; heading: string };
+    team: { eyebrow: string; heading: string };
+    gallery: { eyebrow: string; heading: string };
+    testimonials: { eyebrow: string; heading: string };
+    location: { eyebrow: string; heading: string; intro: string };
+    faq: { eyebrow: string; heading: string };
+    finalCta: { heading: string; text: string };
+  };
+  footerNote?: string;
+  sectionVisibility: SalonSectionVisibility;
+};
+
+export type WebsiteContent =
+  | ServiceWebsiteContent
+  | RestaurantWebsiteContent
+  | SalonWebsiteContent;
 
 export function isRestaurantWebsiteContent(
   content: WebsiteContent,
@@ -226,10 +308,16 @@ export function isRestaurantWebsiteContent(
   return "menu" in content && Array.isArray(content.menu);
 }
 
+export function isSalonWebsiteContent(
+  content: WebsiteContent,
+): content is SalonWebsiteContent {
+  return "team" in content && Array.isArray(content.team) && "booking" in content;
+}
+
 export function isServiceWebsiteContent(
   content: WebsiteContent,
 ): content is ServiceWebsiteContent {
-  return "services" in content && Array.isArray(content.services);
+  return "trustItems" in content && Array.isArray(content.trustItems);
 }
 
 export type TemplateDefinition = {

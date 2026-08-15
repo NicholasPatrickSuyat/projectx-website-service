@@ -1,5 +1,6 @@
 import {
   isRestaurantTemplateId,
+  isSalonTemplateId,
   isServiceTemplateId,
 } from "@/lib/templates/registry";
 import {
@@ -11,12 +12,17 @@ import {
   syncRestaurantSharedFields,
   validateRestaurantContent,
 } from "@/lib/templates/restaurant-editor";
+import {
+  syncSalonSharedFields,
+  validateSalonContent,
+} from "@/lib/templates/salon-editor";
 import type {
   TemplateId,
   WebsiteContent,
 } from "@/lib/templates/types";
 import {
   isRestaurantWebsiteContent,
+  isSalonWebsiteContent,
   isServiceWebsiteContent,
 } from "@/lib/templates/types";
 
@@ -30,6 +36,9 @@ export function syncWebsiteContent(
   if (isRestaurantTemplateId(templateId) && isRestaurantWebsiteContent(content)) {
     return syncRestaurantSharedFields(content);
   }
+  if (isSalonTemplateId(templateId) && isSalonWebsiteContent(content)) {
+    return syncSalonSharedFields(content);
+  }
   return content;
 }
 
@@ -42,6 +51,9 @@ export function validateWebsiteContent(
   }
   if (isRestaurantTemplateId(templateId) && isRestaurantWebsiteContent(content)) {
     return validateRestaurantContent(content);
+  }
+  if (isSalonTemplateId(templateId) && isSalonWebsiteContent(content)) {
+    return validateSalonContent(content);
   }
   return { content: "Website content does not match this template." };
 }
