@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SERVICE_MODERN_01_DEMO_ASSETS } from "@/lib/templates/demo-assets";
+import { SERVICE_MODERN_01_DEMO_ASSETS, type DemoAsset } from "@/lib/templates/demo-assets";
 import { FieldError, FieldHint, SelectField, labelClass } from "./fields";
 import { MediaLibraryModal } from "./MediaLibraryModal";
 import { useWebsiteMediaContext } from "./WebsiteMediaContext";
@@ -15,6 +15,7 @@ type ImagePickerFieldProps = {
   hint?: string;
   allowClear?: boolean;
   templateFallbackSrc?: string;
+  demoAssets?: DemoAsset[];
 };
 
 export function ImagePickerField({
@@ -26,6 +27,7 @@ export function ImagePickerField({
   hint,
   allowClear = false,
   templateFallbackSrc,
+  demoAssets = SERVICE_MODERN_01_DEMO_ASSETS,
 }: ImagePickerFieldProps) {
   const media = useWebsiteMediaContext();
   const [open, setOpen] = useState(false);
@@ -33,12 +35,12 @@ export function ImagePickerField({
   const assetOptions = useMemo(
     () => [
       ...(allowClear ? [{ value: "", label: "Text fallback only" }] : []),
-      ...SERVICE_MODERN_01_DEMO_ASSETS.map((asset) => ({
+      ...demoAssets.map((asset) => ({
         value: asset.src,
         label: asset.label,
       })),
     ],
-    [allowClear],
+    [allowClear, demoAssets],
   );
 
   if (!media) {
@@ -55,7 +57,7 @@ export function ImagePickerField({
     );
   }
 
-  const selectedDemo = SERVICE_MODERN_01_DEMO_ASSETS.find(
+  const selectedDemo = demoAssets.find(
     (asset) => asset.src === value,
   );
   const previewSrc = value || null;
@@ -116,6 +118,7 @@ export function ImagePickerField({
         websiteId={media.websiteId}
         open={open}
         selectedSrc={value}
+        demoAssets={demoAssets}
         onClose={() => setOpen(false)}
         onSelect={(src) => {
           onChange(src);

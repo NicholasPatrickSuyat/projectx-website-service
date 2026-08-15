@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import type { Client } from "@/lib/clients/types";
-import type { TemplateId } from "@/lib/templates/types";
+import type { TemplateDefinition, TemplateId } from "@/lib/templates/types";
 import {
   createWebsiteAction,
   type CreateWebsiteActionState,
@@ -12,8 +12,8 @@ import { defaultWebsiteName } from "@/lib/websites/types";
 
 type CreateWebsiteFormProps = {
   client: Client;
-  templateId: TemplateId;
-  templateDisplayName: string;
+  templates: TemplateDefinition[];
+  defaultTemplateId: TemplateId;
 };
 
 const inputClass =
@@ -22,8 +22,8 @@ const labelClass = "block text-sm font-medium text-foreground";
 
 export function CreateWebsiteForm({
   client,
-  templateId,
-  templateDisplayName,
+  templates,
+  defaultTemplateId,
 }: CreateWebsiteFormProps) {
   const [state, formAction, pending] = useActionState(
     createWebsiteAction,
@@ -42,7 +42,6 @@ export function CreateWebsiteForm({
       ) : null}
 
       <input type="hidden" name="clientId" value={client.id} />
-      <input type="hidden" name="templateId" value={templateId} />
 
       <section className="rounded-xl border border-border bg-card p-5 sm:p-6">
         <h2 className="text-sm font-semibold text-foreground">Website</h2>
@@ -52,11 +51,25 @@ export function CreateWebsiteForm({
             <p className="mt-1.5 text-sm text-foreground">{client.businessName}</p>
           </div>
           <div>
-            <p className={labelClass}>Template</p>
-            <p className="mt-1.5 text-sm text-foreground">{templateDisplayName}</p>
+            <label htmlFor="templateId" className={labelClass}>
+              Template
+            </label>
+            <select
+              id="templateId"
+              name="templateId"
+              defaultValue={defaultTemplateId}
+              className={inputClass}
+            >
+              {templates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.displayName} — {template.categoryLabel}
+                </option>
+              ))}
+            </select>
             <p className="mt-1 text-xs text-muted">
-              V1 includes one template. Restaurant and Salon templates are not
-              available yet.
+              Restaurant / Food clients default to Restaurant Modern 01. Service
+              Business clients default to Service Modern 01. Salon / Beauty does
+              not have a dedicated template yet.
             </p>
             {state?.fieldErrors?.templateId ? (
               <p className="mt-1 text-sm text-rose-700">

@@ -47,7 +47,7 @@ export default async function WebsiteEditPage({
   }
 
   const template = getTemplate(website.templateId);
-  const parsed = parseWebsiteContentJson(website.contentJson);
+  const parsed = parseWebsiteContentJson(website.contentJson, website.templateId);
   const client = await getClientById(website.clientId);
 
   if (!template) {

@@ -36,9 +36,7 @@ export type EditorErrors = Record<string, string>;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const HEX_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
-export function cloneContent(
-  content: ServiceWebsiteContent,
-): ServiceWebsiteContent {
+export function cloneContent<T>(content: T): T {
   return structuredClone(content);
 }
 

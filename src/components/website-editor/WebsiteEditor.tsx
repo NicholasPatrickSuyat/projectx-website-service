@@ -2,16 +2,23 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ServiceModern01 } from "@/components/website-templates/service-modern-01/ServiceModern01";
 import {
   cloneContent,
-  syncSharedContactFields,
-  validateContent,
 } from "@/lib/templates/editor";
+import { isRestaurantTemplateId, isServiceTemplateId } from "@/lib/templates/registry";
+import { renderTemplate } from "@/lib/templates/render";
 import type {
-  ServiceWebsiteContent,
   TemplateDefinition,
+  WebsiteContent,
 } from "@/lib/templates/types";
+import {
+  isRestaurantWebsiteContent,
+  isServiceWebsiteContent,
+} from "@/lib/templates/types";
+import {
+  syncWebsiteContent,
+  validateWebsiteContent,
+} from "@/lib/templates/website-content";
 import {
   WEBSITE_RECORD_STATUS_LABELS,
   getWebsiteStatusTransitions,
@@ -24,6 +31,10 @@ import {
 import { getSavedWebsitePreviewPath } from "@/lib/websites/types";
 import type { WebsiteVersionSummary } from "@/lib/website-versions/types";
 import { EditorForm, type EditorPanelId } from "./EditorForm";
+import {
+  RestaurantEditorForm,
+  type RestaurantEditorPanelId,
+} from "./RestaurantEditorForm";
 import { HistoricalVersionView } from "./HistoricalVersionView";
 import {
   LivePreview,
@@ -31,6 +42,7 @@ import {
   type PreviewDevice,
 } from "./LivePreview";
 import type { EditorUpdate } from "./panels";
+import type { RestaurantEditorUpdate } from "./restaurant-panels";
 import { UnsavedChangesGuard } from "./UnsavedChangesGuard";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
 import { WebsiteMediaProvider } from "./WebsiteMediaContext";
@@ -42,17 +54,17 @@ export type WebsiteEditorPersistence = {
   websiteId: string;
   websiteName: string;
   status: WebsiteRecordStatus;
-  resetContent: ServiceWebsiteContent;
+  resetContent: WebsiteContent;
 };
 
 type WebsiteEditorProps = {
   template: TemplateDefinition;
-  initialContent: ServiceWebsiteContent;
+  initialContent: WebsiteContent;
   persistence?: WebsiteEditorPersistence;
 };
 
-function snapshot(content: ServiceWebsiteContent): string {
-  return JSON.stringify(syncSharedContactFields(content));
+function snapshot(templateId: TemplateDefinition["id"], content: WebsiteContent): string {
+  return JSON.stringify(syncWebsiteContent(templateId, content));
 }
 
 export function WebsiteEditor({
@@ -62,15 +74,17 @@ export function WebsiteEditor({
 }: WebsiteEditorProps) {
   const persisted = Boolean(persistence);
   const [content, setContent] = useState(() =>
-    syncSharedContactFields(cloneContent(initialContent)),
+    syncWebsiteContent(template.id, cloneContent(initialContent)),
   );
   const [savedSnapshot, setSavedSnapshot] = useState(() =>
-    snapshot(initialContent),
+    snapshot(template.id, initialContent),
   );
   const [status, setStatus] = useState<WebsiteRecordStatus>(
     persistence?.status ?? "DRAFT",
   );
-  const [panel, setPanel] = useState<EditorPanelId>("business");
+  const [panel, setPanel] = useState<EditorPanelId | RestaurantEditorPanelId>(
+    "business",
+  );
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [workspacePane, setWorkspacePane] = useState<WorkspacePane>("editor");
   const [focusPreview, setFocusPreview] = useState(false);
@@ -81,12 +95,12 @@ export function WebsiteEditor({
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [viewingVersion, setViewingVersion] = useState<{
     version: WebsiteVersionSummary;
-    content: ServiceWebsiteContent;
+    content: WebsiteContent;
   } | null>(null);
 
-  const errors = validateContent(content);
+  const errors = validateWebsiteContent(template.id, content);
   const errorCount = Object.keys(errors).length;
-  const isDirty = snapshot(content) !== savedSnapshot;
+  const isDirty = snapshot(template.id, content) !== savedSnapshot;
   const displayState: SaveUiState =
     saveState === "saving" || saveState === "failed"
       ? saveState
@@ -94,11 +108,11 @@ export function WebsiteEditor({
         ? "dirty"
         : "saved";
 
-  const onUpdate: EditorUpdate = (updater) => {
+  const onUpdate = (updater: (draft: WebsiteContent) => void) => {
     setContent((current) => {
       const next = cloneContent(current);
       updater(next);
-      return syncSharedContactFields(next);
+      return syncWebsiteContent(template.id, next);
     });
     setResetNotice(false);
     setSaveMessage(null);
@@ -141,7 +155,7 @@ export function WebsiteEditor({
       return;
     }
     const source = persistence?.resetContent ?? initialContent;
-    setContent(syncSharedContactFields(cloneContent(source)));
+    setContent(syncWebsiteContent(template.id, cloneContent(source)));
     setResetNotice(true);
     setFocusPreview(false);
     setSaveMessage(null);
@@ -155,7 +169,7 @@ export function WebsiteEditor({
       return;
     }
 
-    const currentErrors = validateContent(content);
+    const currentErrors = validateWebsiteContent(template.id, content);
     if (Object.keys(currentErrors).length > 0) {
       setSaveState("failed");
       setSaveMessage("Fix the highlighted fields before saving.");
@@ -176,7 +190,7 @@ export function WebsiteEditor({
       return;
     }
 
-    setSavedSnapshot(snapshot(content));
+    setSavedSnapshot(snapshot(template.id, content));
     setStatus(result.status);
     setSaveState("saved");
     setResetNotice(false);
@@ -192,9 +206,9 @@ export function WebsiteEditor({
 
   function applyRestoredVersion(
     version: WebsiteVersionSummary,
-    restoredContent: ServiceWebsiteContent,
+    restoredContent: WebsiteContent,
   ) {
-    setContent(syncSharedContactFields(cloneContent(restoredContent)));
+    setContent(syncWebsiteContent(template.id, cloneContent(restoredContent)));
     setSaveState("dirty");
     setResetNotice(false);
     setFocusPreview(false);
@@ -493,25 +507,40 @@ export function WebsiteEditor({
           }
         >
           <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-4">
-            {persistence ? (
-              <WebsiteMediaProvider websiteId={persistence.websiteId}>
-                <EditorForm
-                  panel={panel}
-                  content={content}
-                  errors={errors}
-                  onUpdate={onUpdate}
-                  onPanelChange={setPanel}
-                />
-              </WebsiteMediaProvider>
-            ) : (
-              <EditorForm
-                panel={panel}
-                content={content}
-                errors={errors}
-                onUpdate={onUpdate}
-                onPanelChange={setPanel}
-              />
-            )}
+            {(() => {
+              const form =
+                isServiceTemplateId(template.id) &&
+                isServiceWebsiteContent(content) ? (
+                  <EditorForm
+                    panel={panel as EditorPanelId}
+                    content={content}
+                    errors={errors}
+                    onUpdate={onUpdate as EditorUpdate}
+                    onPanelChange={setPanel}
+                  />
+                ) : isRestaurantTemplateId(template.id) &&
+                  isRestaurantWebsiteContent(content) ? (
+                  <RestaurantEditorForm
+                    panel={panel as RestaurantEditorPanelId}
+                    content={content}
+                    errors={errors}
+                    onUpdate={onUpdate as RestaurantEditorUpdate}
+                    onPanelChange={setPanel}
+                  />
+                ) : (
+                  <p className="text-sm text-muted">
+                    This website content does not match the selected template.
+                  </p>
+                );
+
+              return persistence ? (
+                <WebsiteMediaProvider websiteId={persistence.websiteId}>
+                  {form}
+                </WebsiteMediaProvider>
+              ) : (
+                form
+              );
+            })()}
           </div>
         </section>
 
@@ -522,7 +551,7 @@ export function WebsiteEditor({
           } xl:flex xl:min-w-0 xl:flex-1`}
         >
           <LivePreview device={device}>
-            <ServiceModern01 content={content} />
+            {renderTemplate(template.id, content)}
           </LivePreview>
         </section>
       </div>
@@ -543,6 +572,7 @@ export function WebsiteEditor({
 
       {viewingVersion ? (
         <HistoricalVersionView
+          templateId={template.id}
           version={viewingVersion.version}
           content={viewingVersion.content}
           device={device}

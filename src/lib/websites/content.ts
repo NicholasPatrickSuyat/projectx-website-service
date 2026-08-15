@@ -3,11 +3,12 @@ import { DEFAULT_SECTION_VISIBILITY } from "@/lib/templates/content-utils";
 import {
   cloneContent,
   syncSharedContactFields,
-  validateContent,
   type EditorErrors,
 } from "@/lib/templates/editor";
 import {
   getTemplateDemoContent,
+  isRestaurantTemplateId,
+  isServiceTemplateId,
 } from "@/lib/templates/registry";
 import type {
   CtaAction,
@@ -16,9 +17,19 @@ import type {
   ServiceIconId,
   ServiceWebsiteContent,
   TemplateId,
+  WebsiteContent,
   WhyIconId,
 } from "@/lib/templates/types";
+import {
+  isRestaurantWebsiteContent,
+  isServiceWebsiteContent,
+} from "@/lib/templates/types";
+import {
+  syncWebsiteContent,
+  validateWebsiteContent,
+} from "@/lib/templates/website-content";
 import { isAllowedWebsiteImageSrc } from "@/lib/website-media/paths";
+import { parseRestaurantWebsiteContentValue } from "@/lib/websites/restaurant-content";
 
 const SERVICE_ICON_IDS: ServiceIconId[] = [
   "repair",
@@ -46,11 +57,11 @@ const SECTION_VISIBILITY_KEYS: SectionVisibilityKey[] = [
 ];
 
 export type ParsedWebsiteContent =
-  | { ok: true; content: ServiceWebsiteContent }
+  | { ok: true; content: WebsiteContent }
   | { ok: false; error: string };
 
 export type SaveContentResult =
-  | { ok: true; content: ServiceWebsiteContent; json: string }
+  | { ok: true; content: WebsiteContent; json: string }
   | { ok: false; error: string; fieldErrors?: EditorErrors };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -578,7 +589,23 @@ export function parseServiceWebsiteContentValue(
   return { ok: true, content: syncSharedContactFields(content) };
 }
 
-export function parseWebsiteContentJson(raw: string): ParsedWebsiteContent {
+export function parseWebsiteContentValue(
+  value: unknown,
+  templateId: TemplateId,
+): ParsedWebsiteContent {
+  if (isServiceTemplateId(templateId)) {
+    return parseServiceWebsiteContentValue(value);
+  }
+  if (isRestaurantTemplateId(templateId)) {
+    return parseRestaurantWebsiteContentValue(value);
+  }
+  return { ok: false, error: "That website template is not available." };
+}
+
+export function parseWebsiteContentJson(
+  raw: string,
+  templateId: TemplateId,
+): ParsedWebsiteContent {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -589,28 +616,30 @@ export function parseWebsiteContentJson(raw: string): ParsedWebsiteContent {
     };
   }
 
-  return parseServiceWebsiteContentValue(parsed);
+  return parseWebsiteContentValue(parsed, templateId);
 }
 
 export function serializeWebsiteContent(
-  content: ServiceWebsiteContent,
+  content: WebsiteContent,
+  templateId: TemplateId,
 ): string {
-  return JSON.stringify(syncSharedContactFields(content));
+  return JSON.stringify(syncWebsiteContent(templateId, content));
 }
 
 export function prepareWebsiteContentForSave(
   input: unknown,
+  templateId: TemplateId,
 ): SaveContentResult {
   const parsed =
     typeof input === "string"
-      ? parseWebsiteContentJson(input)
-      : parseServiceWebsiteContentValue(input);
+      ? parseWebsiteContentJson(input, templateId)
+      : parseWebsiteContentValue(input, templateId);
 
   if (!parsed.ok) {
     return parsed;
   }
 
-  const fieldErrors = validateContent(parsed.content);
+  const fieldErrors = validateWebsiteContent(templateId, parsed.content);
   if (Object.keys(fieldErrors).length > 0) {
     return {
       ok: false,
@@ -622,24 +651,25 @@ export function prepareWebsiteContentForSave(
   return {
     ok: true,
     content: parsed.content,
-    json: serializeWebsiteContent(parsed.content),
+    json: serializeWebsiteContent(parsed.content, templateId),
   };
 }
 
 export function websiteContentJsonEquals(
   left: string,
   right: string,
+  templateId: TemplateId,
 ): boolean {
-  const parsedLeft = parseWebsiteContentJson(left);
-  const parsedRight = parseWebsiteContentJson(right);
+  const parsedLeft = parseWebsiteContentJson(left, templateId);
+  const parsedRight = parseWebsiteContentJson(right, templateId);
 
   if (!parsedLeft.ok || !parsedRight.ok) {
     return left === right;
   }
 
   return (
-    serializeWebsiteContent(parsedLeft.content) ===
-    serializeWebsiteContent(parsedRight.content)
+    serializeWebsiteContent(parsedLeft.content, templateId) ===
+    serializeWebsiteContent(parsedRight.content, templateId)
   );
 }
 
@@ -679,12 +709,12 @@ function replacePeakIdentity(text: string, businessName: string): string {
     .trim();
 }
 
-export function initializeWebsiteContent(
+function initializeServiceWebsiteContent(
   client: Client,
   templateId: TemplateId,
 ): ServiceWebsiteContent {
   const demo = getTemplateDemoContent(templateId);
-  if (!demo) {
+  if (!demo || !isServiceWebsiteContent(demo)) {
     throw new Error("That template does not have demo content.");
   }
 
@@ -749,4 +779,121 @@ export function initializeWebsiteContent(
   content.footerNote = `Website draft for ${client.businessName}.`;
 
   return syncSharedContactFields(content);
+}
+
+function replaceEmberIdentity(text: string, businessName: string): string {
+  return text
+    .replace(/Ember & Olive/gi, businessName)
+    .replace(/Ember and Olive/gi, businessName)
+    .replace(
+      /\s*This is a fictional demo business for Project X Website Service\.?/gi,
+      "",
+    )
+    .replace(
+      /\s*Ember & Olive is fictional demo content[^.]*\./gi,
+      "",
+    )
+    .trim();
+}
+
+function initializeRestaurantWebsiteContent(
+  client: Client,
+  templateId: TemplateId,
+): WebsiteContent {
+  const demo = getTemplateDemoContent(templateId);
+  if (!demo || !isRestaurantWebsiteContent(demo)) {
+    throw new Error("That template does not have demo content.");
+  }
+
+  const content = cloneContent(demo);
+  const phone = client.phone?.trim() ?? "";
+  const email = client.email?.trim() ?? "";
+  const address = formatClientAddress(client);
+  const telHref = phone ? toTelHref(phone) : null;
+
+  content.business.businessName = client.businessName;
+  content.business.logoText = deriveLogoText(client.businessName);
+  content.business.phone = phone;
+  content.business.email = email;
+  content.business.address = address;
+
+  content.seo = {
+    title: `${client.businessName} Website`,
+    description: `Website draft for ${client.businessName}.`,
+  };
+
+  content.hero.subheadline = replaceEmberIdentity(
+    content.hero.subheadline,
+    client.businessName,
+  );
+  content.intro.heading = replaceEmberIdentity(
+    content.intro.heading,
+    client.businessName,
+  );
+  content.intro.text = `${client.businessName} website draft. Update this introduction with the client's own welcome.`;
+  content.about.heading = "Our story";
+  content.about.text = `${client.businessName} website draft. Update this Our Story section with the client's own history.`;
+  content.sections.menu.heading = `Tonight at ${client.businessName}.`;
+
+  if (phone && telHref) {
+    content.hero.secondaryCta = {
+      label: `Call ${phone}`,
+      href: telHref,
+    };
+    content.contact.cta = {
+      label: "Call Us",
+      href: telHref,
+    };
+  } else {
+    content.hero.secondaryCta = {
+      label: "View Menu",
+      href: "#menu",
+    };
+    content.contact.cta = {
+      label: "View Menu",
+      href: "#menu",
+    };
+  }
+
+  const emberFaqIndex = content.faq.findIndex((item) =>
+    /ember & olive|ember and olive/i.test(`${item.question} ${item.answer}`),
+  );
+  if (emberFaqIndex >= 0) {
+    content.faq[emberFaqIndex] = {
+      id: content.faq[emberFaqIndex]?.id ?? "faq-contact",
+      question: "How can I get in touch?",
+      answer: "Call, email, or visit using the details on this page.",
+    };
+  }
+
+  content.reservation = {
+    label: content.reservation.label || "Reserve a Table",
+    href: "",
+  };
+
+  content.socialLinks = content.socialLinks.map((link) => ({
+    ...link,
+    href: "",
+  }));
+
+  content.sections.location.intro =
+    "Find us using the address, hours, and phone on this page.";
+  content.sections.finalCta.text =
+    "Call to inquire about a table, or add an external reservation link when the client has one.";
+  content.footerNote = `Website draft for ${client.businessName}.`;
+
+  return syncWebsiteContent(templateId, content);
+}
+
+export function initializeWebsiteContent(
+  client: Client,
+  templateId: TemplateId,
+): WebsiteContent {
+  if (isServiceTemplateId(templateId)) {
+    return initializeServiceWebsiteContent(client, templateId);
+  }
+  if (isRestaurantTemplateId(templateId)) {
+    return initializeRestaurantWebsiteContent(client, templateId);
+  }
+  throw new Error("That template does not have demo content.");
 }

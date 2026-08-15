@@ -1,14 +1,15 @@
 "use server";
 
 import { cloneContent } from "@/lib/templates/editor";
+import type { WebsiteContent } from "@/lib/templates/types";
 import {
   listWebsiteVersions,
   getWebsiteVersionForWebsite,
 } from "@/lib/website-versions/repository";
 import type { WebsiteVersionSummary } from "@/lib/website-versions/types";
 import { parseWebsiteContentJson } from "@/lib/websites/content";
+import { getWebsiteById } from "@/lib/websites/repository";
 import { isWebsiteId } from "@/lib/websites/validation";
-import type { ServiceWebsiteContent } from "@/lib/templates/types";
 
 export type ListWebsiteVersionsResult =
   | { ok: true; versions: WebsiteVersionSummary[] }
@@ -18,7 +19,7 @@ export type GetWebsiteVersionResult =
   | {
       ok: true;
       version: WebsiteVersionSummary;
-      content: ServiceWebsiteContent;
+      content: WebsiteContent;
     }
   | { ok: false; error: string; malformed?: boolean };
 
@@ -46,7 +47,12 @@ export async function getWebsiteVersionAction(
     return { ok: false, error: "That version could not be found." };
   }
 
-  const parsed = parseWebsiteContentJson(version.contentJson);
+  const website = await getWebsiteById(websiteId);
+  if (!website) {
+    return { ok: false, error: "That website could not be found." };
+  }
+
+  const parsed = parseWebsiteContentJson(version.contentJson, website.templateId);
   if (!parsed.ok) {
     return {
       ok: false,

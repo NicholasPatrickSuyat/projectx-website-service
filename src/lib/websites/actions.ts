@@ -78,7 +78,7 @@ export async function createWebsiteAction(
       clientId: client.id,
       templateId: parsed.data.templateId,
       name: parsed.data.name,
-      contentJson: serializeWebsiteContent(content),
+      contentJson: serializeWebsiteContent(content, parsed.data.templateId),
     });
   } catch (error) {
     if (error instanceof Error && error.message === "WEBSITE_ALREADY_EXISTS") {
@@ -102,7 +102,12 @@ export async function saveWebsiteDraftAction(
     return { ok: false, error: "Website ID is invalid." };
   }
 
-  const prepared = prepareWebsiteContentForSave(contentJson);
+  const existing = await getWebsiteById(websiteId);
+  if (!existing) {
+    return { ok: false, error: "That website could not be found." };
+  }
+
+  const prepared = prepareWebsiteContentForSave(contentJson, existing.templateId);
   if (!prepared.ok) {
     return {
       ok: false,
@@ -111,12 +116,7 @@ export async function saveWebsiteDraftAction(
     };
   }
 
-  const existing = await getWebsiteById(websiteId);
-  if (!existing) {
-    return { ok: false, error: "That website could not be found." };
-  }
-
-  if (websiteContentJsonEquals(existing.contentJson, prepared.json)) {
+  if (websiteContentJsonEquals(existing.contentJson, prepared.json, existing.templateId)) {
     return {
       ok: true,
       updatedAt: existing.updatedAt,

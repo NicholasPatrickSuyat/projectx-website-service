@@ -10,7 +10,7 @@ import {
   formatVersionSavedAt,
   type WebsiteVersionSummary,
 } from "@/lib/website-versions/types";
-import type { ServiceWebsiteContent } from "@/lib/templates/types";
+import type { WebsiteContent } from "@/lib/templates/types";
 
 type VersionHistoryPanelProps = {
   websiteId: string;
@@ -20,11 +20,11 @@ type VersionHistoryPanelProps = {
   onClose: () => void;
   onView: (
     version: WebsiteVersionSummary,
-    content: ServiceWebsiteContent,
+    content: WebsiteContent,
   ) => void;
   onRestore: (
     version: WebsiteVersionSummary,
-    content: ServiceWebsiteContent,
+    content: WebsiteContent,
   ) => void;
 };
 

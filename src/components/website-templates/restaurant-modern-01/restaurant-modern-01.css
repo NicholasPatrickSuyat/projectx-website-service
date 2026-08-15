@@ -1,0 +1,52 @@
+.rm01 {
+  --rm-primary: #2a1f18;
+  --rm-accent: #c45c26;
+  --rm-secondary: #6b7f4a;
+  --rm-background: #f7f1e8;
+  --rm-surface: #fffaf4;
+  --rm-ink: #241c16;
+  --rm-muted: #6a5d52;
+  min-height: 100dvh;
+  overflow-x: clip;
+  background: var(--rm-background);
+  color: var(--rm-ink);
+  font-family: var(--font-rm-sans), ui-sans-serif, system-ui, sans-serif;
+  scroll-behavior: smooth;
+}
+
+.rm01-display {
+  font-family: var(--font-rm-display), Georgia, "Times New Roman", serif;
+}
+
+.rm01 a:focus-visible,
+.rm01 button:focus-visible,
+.rm01 summary:focus-visible {
+  outline: 2px solid var(--rm-accent);
+  outline-offset: 3px;
+}
+
+.rm01-reveal {
+  animation: rm01-fade-up 0.75s ease both;
+}
+
+@keyframes rm01-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rm01,
+  .rm01-reveal,
+  .rm01 * {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

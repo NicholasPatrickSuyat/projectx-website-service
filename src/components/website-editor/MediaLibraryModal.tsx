@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { SERVICE_MODERN_01_DEMO_ASSETS } from "@/lib/templates/demo-assets";
+import { SERVICE_MODERN_01_DEMO_ASSETS, type DemoAsset } from "@/lib/templates/demo-assets";
 import {
   listWebsiteMediaAction,
   uploadWebsiteMediaAction,
@@ -12,6 +12,7 @@ type MediaLibraryModalProps = {
   websiteId: string;
   open: boolean;
   selectedSrc: string;
+  demoAssets?: DemoAsset[];
   onClose: () => void;
   onSelect: (src: string) => void;
 };
@@ -20,6 +21,7 @@ export function MediaLibraryModal({
   websiteId,
   open,
   selectedSrc,
+  demoAssets = SERVICE_MODERN_01_DEMO_ASSETS,
   onClose,
   onSelect,
 }: MediaLibraryModalProps) {
@@ -65,10 +67,10 @@ export function MediaLibraryModal({
       return uploaded.originalFilename;
     }
     return (
-      SERVICE_MODERN_01_DEMO_ASSETS.find((asset) => asset.src === selectedSrc)
+      demoAssets.find((asset) => asset.src === selectedSrc)
         ?.label ?? null
     );
-  }, [media, selectedSrc]);
+  }, [demoAssets, media, selectedSrc]);
 
   async function onUpload(fileList: FileList | null) {
     const file = fileList?.[0];
@@ -225,11 +227,11 @@ export function MediaLibraryModal({
               Template images
             </h3>
             <p className="mt-1 text-xs text-muted">
-              Bundled Service Modern 01 assets. Use these to restore a demo
-              image without deleting uploads.
+              Bundled template assets. Use these to restore a demo image without
+              deleting uploads.
             </p>
             <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {SERVICE_MODERN_01_DEMO_ASSETS.map((asset) => {
+              {demoAssets.map((asset) => {
                 const selected = asset.src === selectedSrc;
                 return (
                   <li key={asset.src}>

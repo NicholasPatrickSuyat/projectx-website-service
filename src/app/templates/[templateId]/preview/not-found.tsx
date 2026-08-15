@@ -8,8 +8,8 @@ export default function TemplatePreviewNotFound() {
           Template not found
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          That template ID is not in the registry. Service Modern 01 is the only
-          template available in this milestone.
+          That template ID is not in the registry. Available templates are
+          listed on the Templates page.
         </p>
         <Link
           href="/templates"

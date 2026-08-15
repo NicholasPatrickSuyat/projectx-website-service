@@ -1,5 +1,5 @@
 import type { WebsiteRecordStatus } from "@/lib/domain";
-import type { ServiceWebsiteContent } from "@/lib/templates/types";
+import type { WebsiteContent } from "@/lib/templates/types";
 
 export type WebsiteVersionSummary = {
   id: string;
@@ -14,7 +14,7 @@ export type WebsiteVersion = WebsiteVersionSummary & {
 };
 
 export type ParsedWebsiteVersion = WebsiteVersionSummary & {
-  content: ServiceWebsiteContent;
+  content: WebsiteContent;
 };
 
 export type WebsiteVersionRow = {

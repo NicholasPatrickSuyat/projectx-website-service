@@ -1,11 +1,15 @@
+import type { ClientCategory } from "@/lib/domain";
 import type {
-  ServiceWebsiteContent,
   TemplateDefinition,
   TemplateId,
+  WebsiteContent,
 } from "@/lib/templates/types";
+import { EMBER_AND_OLIVE_DEMO } from "@/lib/templates/demo-content/ember-and-olive";
 import { PEAK_HEATING_AIR_DEMO } from "@/lib/templates/demo-content/peak-heating-air";
 
 export const SERVICE_MODERN_01_ID = "service-modern-01" as const satisfies TemplateId;
+export const RESTAURANT_MODERN_01_ID =
+  "restaurant-modern-01" as const satisfies TemplateId;
 
 export const TEMPLATE_REGISTRY: TemplateDefinition[] = [
   {
@@ -30,6 +34,28 @@ export const TEMPLATE_REGISTRY: TemplateDefinition[] = [
       "contact",
     ],
   },
+  {
+    id: RESTAURANT_MODERN_01_ID,
+    displayName: "Restaurant Modern 01",
+    category: "RESTAURANT_FOOD",
+    categoryLabel: "Restaurant / Food",
+    description:
+      "A warm, food-focused single-page website for neighborhood restaurants, with a structured menu and reservation CTA.",
+    status: "Available",
+    previewPath: "/templates/restaurant-modern-01/preview",
+    editPath: "/templates/restaurant-modern-01/edit",
+    capabilities: [
+      "hero",
+      "menu",
+      "featured",
+      "about",
+      "gallery",
+      "testimonials",
+      "location",
+      "faq",
+      "reservationCta",
+    ],
+  },
 ];
 
 export function listTemplates(): TemplateDefinition[] {
@@ -40,9 +66,33 @@ export function getTemplate(id: string): TemplateDefinition | null {
   return TEMPLATE_REGISTRY.find((template) => template.id === id) ?? null;
 }
 
-export function getTemplateDemoContent(id: string): ServiceWebsiteContent | null {
-  if (id === SERVICE_MODERN_01_ID) {
+export function isServiceTemplateId(
+  id: string,
+): id is typeof SERVICE_MODERN_01_ID {
+  return id === SERVICE_MODERN_01_ID;
+}
+
+export function isRestaurantTemplateId(
+  id: string,
+): id is typeof RESTAURANT_MODERN_01_ID {
+  return id === RESTAURANT_MODERN_01_ID;
+}
+
+export function getDefaultTemplateId(category: ClientCategory): TemplateId {
+  if (category === "RESTAURANT_FOOD") {
+    return RESTAURANT_MODERN_01_ID;
+  }
+
+  return SERVICE_MODERN_01_ID;
+}
+
+export function getTemplateDemoContent(id: string): WebsiteContent | null {
+  if (isServiceTemplateId(id)) {
     return PEAK_HEATING_AIR_DEMO;
+  }
+
+  if (isRestaurantTemplateId(id)) {
+    return EMBER_AND_OLIVE_DEMO;
   }
 
   return null;

@@ -3,7 +3,10 @@ import {
   getWebsiteStatusTransitions,
   type WebsiteRecordStatus,
 } from "@/lib/domain";
-import { SERVICE_MODERN_01_ID } from "@/lib/templates/registry";
+import {
+  isRestaurantTemplateId,
+  isServiceTemplateId,
+} from "@/lib/templates/registry";
 import type { TemplateId } from "@/lib/templates/types";
 
 export const WEBSITE_ID_PATTERN =
@@ -22,7 +25,7 @@ export function isWebsiteRecordStatus(
 }
 
 export function isWebsiteTemplateId(value: string): value is TemplateId {
-  return value === SERVICE_MODERN_01_ID;
+  return isServiceTemplateId(value) || isRestaurantTemplateId(value);
 }
 
 export function canTransitionWebsiteStatus(
@@ -69,7 +72,7 @@ export function validateCreateWebsiteInput(
   }
 
   if (!isWebsiteTemplateId(templateId)) {
-    fieldErrors.templateId = "Choose the available website template.";
+    fieldErrors.templateId = "Choose an available website template.";
   }
 
   if (!name) {

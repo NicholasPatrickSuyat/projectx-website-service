@@ -1,5 +1,5 @@
 import { getTemplate } from "@/lib/templates/registry";
-import type { ServiceWebsiteContent } from "@/lib/templates/types";
+import type { WebsiteContent } from "@/lib/templates/types";
 import { parseWebsiteContentJson } from "@/lib/websites/content";
 import { getWebsiteById } from "@/lib/websites/repository";
 import type { Website } from "@/lib/websites/types";
@@ -8,7 +8,7 @@ import { isWebsiteId } from "@/lib/websites/validation";
 export type StandaloneSavedWebsite = {
   website: Website;
   templateId: string;
-  content: ServiceWebsiteContent;
+  content: WebsiteContent;
 };
 
 export async function getStandaloneSavedWebsite(
@@ -28,7 +28,10 @@ export async function getStandaloneSavedWebsite(
     return null;
   }
 
-  const parsed = parseWebsiteContentJson(website.contentJson);
+  const parsed = parseWebsiteContentJson(
+    website.contentJson,
+    website.templateId,
+  );
   if (!parsed.ok) {
     return null;
   }

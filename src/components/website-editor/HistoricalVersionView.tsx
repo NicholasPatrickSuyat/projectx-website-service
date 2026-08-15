@@ -1,19 +1,20 @@
 "use client";
 
-import { ServiceModern01 } from "@/components/website-templates/service-modern-01/ServiceModern01";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import {
   LivePreview,
   PREVIEW_DEVICES,
   type PreviewDevice,
 } from "@/components/website-editor/LivePreview";
-import type { ServiceWebsiteContent } from "@/lib/templates/types";
+import { renderTemplate } from "@/lib/templates/render";
+import type { TemplateId, WebsiteContent } from "@/lib/templates/types";
 import { formatVersionSavedAt } from "@/lib/website-versions/types";
 import type { WebsiteVersionSummary } from "@/lib/website-versions/types";
 
 type HistoricalVersionViewProps = {
+  templateId: TemplateId;
   version: WebsiteVersionSummary;
-  content: ServiceWebsiteContent;
+  content: WebsiteContent;
   device: PreviewDevice;
   onDeviceChange: (device: PreviewDevice) => void;
   onBack: () => void;
@@ -21,6 +22,7 @@ type HistoricalVersionViewProps = {
 };
 
 export function HistoricalVersionView({
+  templateId,
   version,
   content,
   device,
@@ -100,7 +102,7 @@ export function HistoricalVersionView({
           className="flex min-h-0 min-w-0 flex-1 flex-col"
         >
           <LivePreview device={device}>
-            <ServiceModern01 content={content} />
+            {renderTemplate(templateId, content)}
           </LivePreview>
         </section>
       </div>

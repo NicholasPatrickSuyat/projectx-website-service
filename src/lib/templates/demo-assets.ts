@@ -11,3 +11,32 @@ export const SERVICE_MODERN_01_DEMO_ASSETS: DemoAsset[] = [
   { src: "/templates/service-modern-01/gallery-3.jpg", label: "Gallery 3 — thermostat" },
   { src: "/templates/service-modern-01/gallery-4.jpg", label: "Gallery 4 — service van" },
 ];
+
+export const RESTAURANT_MODERN_01_DEMO_ASSETS: DemoAsset[] = [
+  { src: "/templates/restaurant-modern-01/hero.jpg", label: "Hero — dining room" },
+  { src: "/templates/restaurant-modern-01/intro.jpg", label: "Intro — wood-fired branzino" },
+  { src: "/templates/restaurant-modern-01/story.jpg", label: "Story — olive oil still life" },
+  {
+    src: "/templates/restaurant-modern-01/featured-branzino.jpg",
+    label: "Featured — wood-fired branzino",
+  },
+  {
+    src: "/templates/restaurant-modern-01/featured-lamb.jpg",
+    label: "Featured — herb lamb shoulder",
+  },
+  {
+    src: "/templates/restaurant-modern-01/featured-pasta.jpg",
+    label: "Featured — saffron linguine",
+  },
+  { src: "/templates/restaurant-modern-01/gallery-patio.jpg", label: "Gallery — evening patio" },
+  { src: "/templates/restaurant-modern-01/gallery-table.jpg", label: "Gallery — table setting" },
+  { src: "/templates/restaurant-modern-01/gallery-dessert.jpg", label: "Gallery — olive oil cake" },
+];
+
+export function getTemplateDemoAssets(templateId: string): DemoAsset[] {
+  if (templateId === "restaurant-modern-01") {
+    return RESTAURANT_MODERN_01_DEMO_ASSETS;
+  }
+
+  return SERVICE_MODERN_01_DEMO_ASSETS;
+}

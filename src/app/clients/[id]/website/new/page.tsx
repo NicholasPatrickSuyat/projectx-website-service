@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { CreateWebsiteForm } from "@/components/websites/CreateWebsiteForm";
 import { getClientById } from "@/lib/clients/repository";
-import { getTemplate, SERVICE_MODERN_01_ID } from "@/lib/templates/registry";
+import {
+  getDefaultTemplateId,
+  listTemplates,
+} from "@/lib/templates/registry";
 import { getWebsiteForClient } from "@/lib/websites/repository";
 
 export const dynamic = "force-dynamic";
@@ -35,8 +38,8 @@ export default async function NewWebsitePage({ params }: NewWebsitePageProps) {
     redirect(`/clients/${client.id}`);
   }
 
-  const template = getTemplate(SERVICE_MODERN_01_ID);
-  if (!template) {
+  const templates = listTemplates();
+  if (templates.length === 0) {
     notFound();
   }
 
@@ -48,14 +51,14 @@ export default async function NewWebsitePage({ params }: NewWebsitePageProps) {
         </h2>
         <p className="mt-1 text-sm leading-6 text-muted">
           Create a saved website draft for {client.businessName}. V1 allows one
-          website per client. Content starts from Service Modern 01, then you
-          can edit and Save Draft.
+          website per client. Content starts from the selected template, then
+          you can edit and Save Draft.
         </p>
       </div>
       <CreateWebsiteForm
         client={client}
-        templateId={template.id}
-        templateDisplayName={template.displayName}
+        templates={templates}
+        defaultTemplateId={getDefaultTemplateId(client.category)}
       />
     </div>
   );
