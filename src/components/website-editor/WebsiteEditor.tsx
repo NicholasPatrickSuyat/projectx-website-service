@@ -21,6 +21,7 @@ import {
   saveWebsiteDraftAction,
   updateWebsiteStatusAction,
 } from "@/lib/websites/actions";
+import { getSavedWebsitePreviewPath } from "@/lib/websites/types";
 import type { WebsiteVersionSummary } from "@/lib/website-versions/types";
 import { EditorForm, type EditorPanelId } from "./EditorForm";
 import { HistoricalVersionView } from "./HistoricalVersionView";
@@ -305,7 +306,7 @@ export function WebsiteEditor({
               {focusPreview
                 ? `Showing current unsaved ${template.displayName} edits. Press Escape or Back to editor to return.`
                 : persisted
-                  ? `Editing saved ${template.displayName} content. The live preview updates immediately. Save Draft writes to local D1. Ready to publish is an internal status only — this website is not public.`
+                  ? `Editing saved ${template.displayName} content. The live preview updates immediately with unsaved edits. Open Standalone Preview shows the last saved draft. Ready to publish is an internal status only — this website is not public.`
                   : `Editing ${template.displayName}. Changes update the live preview immediately and are not saved. Refreshing restores the demo.`}
             </p>
           </div>
@@ -423,6 +424,17 @@ export function WebsiteEditor({
                 >
                   Version History
                 </button>
+                {persistence ? (
+                  <a
+                    href={getSavedWebsitePreviewPath(persistence.websiteId)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={toolbarButton}
+                    title="Shows the last saved draft. Unsaved editor changes are not included."
+                  >
+                    Open Standalone Preview
+                  </a>
+                ) : null}
               </>
             ) : (
               <>

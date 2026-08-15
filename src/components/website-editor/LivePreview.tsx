@@ -27,7 +27,7 @@ const SRC_DOC =
 
 function syncIframeAssets(iframe: HTMLIFrameElement) {
   const doc = iframe.contentDocument;
-  if (!doc) {
+  if (!doc?.head || !doc.body) {
     return;
   }
 
@@ -71,12 +71,12 @@ export function LivePreview({ children, device }: LivePreviewProps) {
   const attach = useCallback(() => {
     const iframe = iframeRef.current;
     const doc = iframe?.contentDocument;
-    if (!iframe || !doc) {
+    if (!iframe || !doc?.body) {
       return;
     }
 
     syncIframeAssets(iframe);
-    setMountNode((current) => current ?? doc.body);
+    setMountNode(doc.body);
   }, []);
 
   useEffect(() => {

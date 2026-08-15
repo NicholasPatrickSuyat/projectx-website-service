@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatTimestamp } from "@/lib/clients/types";
 import { getTemplate } from "@/lib/templates/registry";
 import { listWebsites } from "@/lib/websites/repository";
+import { getSavedWebsitePreviewPath } from "@/lib/websites/types";
 
 export const dynamic = "force-dynamic";
 
@@ -98,12 +99,22 @@ export default async function WebsitesPage() {
                         {formatTimestamp(website.updatedAt)}
                       </td>
                       <td className="px-5 py-3.5">
-                        <Link
-                          href={`/websites/${website.id}/edit`}
-                          className="font-medium text-accent hover:underline"
-                        >
-                          Open editor
-                        </Link>
+                        <div className="flex flex-col items-start gap-1">
+                          <Link
+                            href={`/websites/${website.id}/edit`}
+                            className="font-medium text-accent hover:underline"
+                          >
+                            Open editor
+                          </Link>
+                          <Link
+                            href={getSavedWebsitePreviewPath(website.id)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-medium text-accent hover:underline"
+                          >
+                            Preview saved site
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -128,12 +139,22 @@ export default async function WebsitesPage() {
                       Updated {formatTimestamp(website.updatedAt)}
                     </span>
                   </div>
-                  <Link
-                    href={`/websites/${website.id}/edit`}
-                    className="mt-3 inline-flex text-sm font-medium text-accent hover:underline"
-                  >
-                    Open editor
-                  </Link>
+                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+                    <Link
+                      href={`/websites/${website.id}/edit`}
+                      className="inline-flex text-sm font-medium text-accent hover:underline"
+                    >
+                      Open editor
+                    </Link>
+                    <Link
+                      href={getSavedWebsitePreviewPath(website.id)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex text-sm font-medium text-accent hover:underline"
+                    >
+                      Preview saved site
+                    </Link>
+                  </div>
                 </li>
               );
             })}

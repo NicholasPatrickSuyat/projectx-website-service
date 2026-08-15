@@ -20,6 +20,7 @@ import {
 } from "@/lib/domain";
 import { getTemplate } from "@/lib/templates/registry";
 import { getWebsiteForClient } from "@/lib/websites/repository";
+import { getSavedWebsitePreviewPath } from "@/lib/websites/types";
 
 export const dynamic = "force-dynamic";
 
@@ -216,12 +217,22 @@ export default async function ClientDetailPage({
                   </dd>
                 </div>
               </dl>
-              <Link
-                href={`/websites/${website.id}/edit`}
-                className="mt-5 inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2f6ef0]"
-              >
-                Open Website Editor
-              </Link>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <Link
+                  href={`/websites/${website.id}/edit`}
+                  className="inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2f6ef0]"
+                >
+                  Open Website Editor
+                </Link>
+                <Link
+                  href={getSavedWebsitePreviewPath(website.id)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground hover:bg-background"
+                >
+                  Preview saved site
+                </Link>
+              </div>
             </>
           ) : (
             <>

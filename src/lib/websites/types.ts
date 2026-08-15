@@ -62,3 +62,7 @@ export function defaultWebsiteName(businessName: string): string {
   const trimmed = businessName.trim();
   return trimmed ? `${trimmed} Website` : "Website";
 }
+
+export function getSavedWebsitePreviewPath(websiteId: string) {
+  return `/site/${websiteId}`;
+}
