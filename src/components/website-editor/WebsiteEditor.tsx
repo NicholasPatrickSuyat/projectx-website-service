@@ -21,7 +21,9 @@ import {
   saveWebsiteDraftAction,
   updateWebsiteStatusAction,
 } from "@/lib/websites/actions";
+import type { WebsiteVersionSummary } from "@/lib/website-versions/types";
 import { EditorForm, type EditorPanelId } from "./EditorForm";
+import { HistoricalVersionView } from "./HistoricalVersionView";
 import {
   LivePreview,
   PREVIEW_DEVICES,
@@ -29,6 +31,7 @@ import {
 } from "./LivePreview";
 import type { EditorUpdate } from "./panels";
 import { UnsavedChangesGuard } from "./UnsavedChangesGuard";
+import { VersionHistoryPanel } from "./VersionHistoryPanel";
 
 type WorkspacePane = "editor" | "preview";
 type SaveUiState = "saved" | "dirty" | "saving" | "failed";
@@ -72,6 +75,12 @@ export function WebsiteEditor({
   const [resetNotice, setResetNotice] = useState(false);
   const [saveState, setSaveState] = useState<SaveUiState>("saved");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [viewingVersion, setViewingVersion] = useState<{
+    version: WebsiteVersionSummary;
+    content: ServiceWebsiteContent;
+  } | null>(null);
 
   const errors = validateContent(content);
   const errorCount = Object.keys(errors).length;
@@ -97,19 +106,28 @@ export function WebsiteEditor({
   };
 
   useEffect(() => {
-    if (!focusPreview) {
+    if (!focusPreview && !historyOpen && !viewingVersion) {
       return;
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setFocusPreview(false);
+      if (event.key !== "Escape") {
+        return;
       }
+      if (viewingVersion) {
+        setViewingVersion(null);
+        return;
+      }
+      if (historyOpen) {
+        setHistoryOpen(false);
+        return;
+      }
+      setFocusPreview(false);
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusPreview]);
+  }, [focusPreview, historyOpen, viewingVersion]);
 
   function resetEditor() {
     const confirmed = window.confirm(
@@ -159,8 +177,45 @@ export function WebsiteEditor({
     setSavedSnapshot(snapshot(content));
     setStatus(result.status);
     setSaveState("saved");
-    setSaveMessage("Draft saved.");
     setResetNotice(false);
+    setHistoryRefreshKey((current) => current + 1);
+    if (result.contentChanged && result.versionNumber) {
+      setSaveMessage(`Draft saved as Version ${result.versionNumber}.`);
+    } else if (result.contentChanged === false) {
+      setSaveMessage("No content changes to save.");
+    } else {
+      setSaveMessage("Draft saved.");
+    }
+  }
+
+  function applyRestoredVersion(
+    version: WebsiteVersionSummary,
+    restoredContent: ServiceWebsiteContent,
+  ) {
+    setContent(syncSharedContactFields(cloneContent(restoredContent)));
+    setSaveState("dirty");
+    setResetNotice(false);
+    setFocusPreview(false);
+    setHistoryOpen(false);
+    setViewingVersion(null);
+    setSaveMessage(
+      `Version ${version.versionNumber} loaded into the editor. Save Draft to keep it.`,
+    );
+  }
+
+  function restoreViewingVersion() {
+    if (!viewingVersion) {
+      return;
+    }
+    const confirmed = window.confirm(
+      isDirty
+        ? `You have unsaved changes. Restore Version ${viewingVersion.version.versionNumber} and replace the current editor content? This does not change the saved draft until you click Save Draft.`
+        : `Load Version ${viewingVersion.version.versionNumber} into the editor? This does not change the saved draft until you click Save Draft.`,
+    );
+    if (!confirmed) {
+      return;
+    }
+    applyRestoredVersion(viewingVersion.version, viewingVersion.content);
   }
 
   async function onStatusChange(nextStatus: WebsiteRecordStatus) {
@@ -361,6 +416,13 @@ export function WebsiteEditor({
                 <button type="button" onClick={resetEditor} className={toolbarButton}>
                   Reset to template
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setHistoryOpen(true)}
+                  className={toolbarButton}
+                >
+                  Version History
+                </button>
               </>
             ) : (
               <>
@@ -439,6 +501,31 @@ export function WebsiteEditor({
           </LivePreview>
         </section>
       </div>
+
+      {persistence ? (
+        <VersionHistoryPanel
+          websiteId={persistence.websiteId}
+          open={historyOpen && !viewingVersion}
+          isDirty={isDirty}
+          refreshKey={historyRefreshKey}
+          onClose={() => setHistoryOpen(false)}
+          onView={(version, restoredContent) =>
+            setViewingVersion({ version, content: restoredContent })
+          }
+          onRestore={applyRestoredVersion}
+        />
+      ) : null}
+
+      {viewingVersion ? (
+        <HistoricalVersionView
+          version={viewingVersion.version}
+          content={viewingVersion.content}
+          device={device}
+          onDeviceChange={setDevice}
+          onBack={() => setViewingVersion(null)}
+          onRestore={restoreViewingVersion}
+        />
+      ) : null}
     </div>
   );
 }

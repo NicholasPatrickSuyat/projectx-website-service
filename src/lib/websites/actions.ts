@@ -9,6 +9,7 @@ import {
   initializeWebsiteContent,
   prepareWebsiteContentForSave,
   serializeWebsiteContent,
+  websiteContentJsonEquals,
 } from "@/lib/websites/content";
 import {
   createWebsite,
@@ -31,7 +32,13 @@ export type CreateWebsiteActionState = {
 } | null;
 
 export type WebsiteMutationResult =
-  | { ok: true; updatedAt: string; status: WebsiteRecordStatus }
+  | {
+      ok: true;
+      updatedAt: string;
+      status: WebsiteRecordStatus;
+      versionNumber?: number | null;
+      contentChanged?: boolean;
+    }
   | { ok: false; error: string; fieldErrors?: EditorErrors };
 
 function revalidateWebsitePaths(websiteId: string, clientId: string) {
@@ -104,16 +111,45 @@ export async function saveWebsiteDraftAction(
     };
   }
 
-  const updated = await updateWebsiteContent(websiteId, prepared.json);
+  const existing = await getWebsiteById(websiteId);
+  if (!existing) {
+    return { ok: false, error: "That website could not be found." };
+  }
+
+  if (websiteContentJsonEquals(existing.contentJson, prepared.json)) {
+    return {
+      ok: true,
+      updatedAt: existing.updatedAt,
+      status: existing.status,
+      versionNumber: null,
+      contentChanged: false,
+    };
+  }
+
+  let updated;
+  try {
+    updated = await updateWebsiteContent(websiteId, prepared.json);
+  } catch (error) {
+    if (error instanceof Error && error.message === "WEBSITE_VERSION_CONFLICT") {
+      return {
+        ok: false,
+        error: "Could not save a version checkpoint. Try Save Draft again.",
+      };
+    }
+    throw error;
+  }
+
   if (!updated) {
     return { ok: false, error: "That website could not be found." };
   }
 
-  revalidateWebsitePaths(updated.id, updated.clientId);
+  revalidateWebsitePaths(updated.website.id, updated.website.clientId);
   return {
     ok: true,
-    updatedAt: updated.updatedAt,
-    status: updated.status,
+    updatedAt: updated.website.updatedAt,
+    status: updated.website.status,
+    versionNumber: updated.versionNumber,
+    contentChanged: true,
   };
 }
 

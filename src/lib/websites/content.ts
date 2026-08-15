@@ -604,6 +604,23 @@ export function prepareWebsiteContentForSave(
   };
 }
 
+export function websiteContentJsonEquals(
+  left: string,
+  right: string,
+): boolean {
+  const parsedLeft = parseWebsiteContentJson(left);
+  const parsedRight = parseWebsiteContentJson(right);
+
+  if (!parsedLeft.ok || !parsedRight.ok) {
+    return left === right;
+  }
+
+  return (
+    serializeWebsiteContent(parsedLeft.content) ===
+    serializeWebsiteContent(parsedRight.content)
+  );
+}
+
 export function formatClientAddress(client: Client): string {
   return [client.addressLine1, client.city, client.state, client.postalCode]
     .filter(Boolean)

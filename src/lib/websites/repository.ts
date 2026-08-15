@@ -1,6 +1,10 @@
 import { getDb } from "@/lib/db";
 import type { WebsiteRecordStatus } from "@/lib/domain";
 import {
+  getWebsiteVersionById,
+  prepareInsertWebsiteVersion,
+} from "@/lib/website-versions/repository";
+import {
   mapWebsiteListRow,
   mapWebsiteRow,
   type Website,
@@ -20,6 +24,12 @@ const WEBSITE_COLUMNS = `
   created_at,
   updated_at
 `;
+
+export type WebsiteContentSaveResult = {
+  website: Website;
+  versionNumber: number | null;
+  contentChanged: boolean;
+};
 
 function isUniqueConstraintError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
@@ -90,31 +100,41 @@ export async function createWebsite(
   const db = await getDb();
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
+  const versionId = crypto.randomUUID();
 
   try {
-    await db
-      .prepare(
-        `INSERT INTO websites (
+    await db.batch([
+      db
+        .prepare(
+          `INSERT INTO websites (
+            id,
+            client_id,
+            template_id,
+            name,
+            status,
+            content_json,
+            created_at,
+            updated_at
+          ) VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, ?)`,
+        )
+        .bind(
           id,
-          client_id,
-          template_id,
-          name,
-          status,
-          content_json,
-          created_at,
-          updated_at
-        ) VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, ?)`,
-      )
-      .bind(
-        id,
-        input.clientId,
-        input.templateId,
-        input.name,
-        input.contentJson,
-        now,
-        now,
-      )
-      .run();
+          input.clientId,
+          input.templateId,
+          input.name,
+          input.contentJson,
+          now,
+          now,
+        ),
+      prepareInsertWebsiteVersion(db, {
+        id: versionId,
+        websiteId: id,
+        versionNumber: 1,
+        contentJson: input.contentJson,
+        websiteStatus: "DRAFT",
+        createdAt: now,
+      }),
+    ]);
   } catch (error) {
     if (isUniqueConstraintError(error)) {
       throw new Error("WEBSITE_ALREADY_EXISTS");
@@ -133,7 +153,7 @@ export async function createWebsite(
 export async function updateWebsiteContent(
   id: string,
   contentJson: string,
-): Promise<Website | null> {
+): Promise<WebsiteContentSaveResult | null> {
   const existing = await getWebsiteById(id);
   if (!existing) {
     return null;
@@ -141,15 +161,42 @@ export async function updateWebsiteContent(
 
   const db = await getDb();
   const now = new Date().toISOString();
+  const versionId = crypto.randomUUID();
 
-  await db
-    .prepare(
-      "UPDATE websites SET content_json = ?, updated_at = ? WHERE id = ?",
-    )
-    .bind(contentJson, now, id)
-    .run();
+  try {
+    await db.batch([
+      db
+        .prepare(
+          "UPDATE websites SET content_json = ?, updated_at = ? WHERE id = ?",
+        )
+        .bind(contentJson, now, id),
+      prepareInsertWebsiteVersion(db, {
+        id: versionId,
+        websiteId: id,
+        contentJson,
+        websiteStatus: existing.status,
+        createdAt: now,
+      }),
+    ]);
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      throw new Error("WEBSITE_VERSION_CONFLICT");
+    }
+    throw error;
+  }
 
-  return getWebsiteById(id);
+  const website = await getWebsiteById(id);
+  if (!website) {
+    throw new Error("Website was saved but could not be loaded.");
+  }
+
+  const version = await getWebsiteVersionById(versionId);
+
+  return {
+    website,
+    versionNumber: version?.versionNumber ?? null,
+    contentChanged: true,
+  };
 }
 
 export async function updateWebsiteStatus(
