@@ -11,6 +11,8 @@ import {
   serializeWebsiteContent,
   websiteContentJsonEquals,
 } from "@/lib/websites/content";
+import { getReviewSessionByWebsiteId } from "@/lib/website-review/repository";
+import { getReviewPath } from "@/lib/website-review/types";
 import {
   createWebsite,
   getWebsiteById,
@@ -47,6 +49,14 @@ function revalidateWebsitePaths(websiteId: string, clientId: string) {
   revalidatePath("/clients");
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/");
+}
+
+async function revalidateWebsiteAndReview(websiteId: string, clientId: string) {
+  revalidateWebsitePaths(websiteId, clientId);
+  const session = await getReviewSessionByWebsiteId(websiteId);
+  if (session) {
+    revalidatePath(getReviewPath(session.token));
+  }
 }
 
 export async function createWebsiteAction(
@@ -143,7 +153,7 @@ export async function saveWebsiteDraftAction(
     return { ok: false, error: "That website could not be found." };
   }
 
-  revalidateWebsitePaths(updated.website.id, updated.website.clientId);
+  await revalidateWebsiteAndReview(updated.website.id, updated.website.clientId);
   return {
     ok: true,
     updatedAt: updated.website.updatedAt,

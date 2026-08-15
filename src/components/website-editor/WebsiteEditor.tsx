@@ -51,6 +51,7 @@ import type { RestaurantEditorUpdate } from "./restaurant-panels";
 import type { SalonEditorUpdate } from "./salon-panels";
 import { UnsavedChangesGuard } from "./UnsavedChangesGuard";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
+import { ClientReviewPanel } from "./ClientReviewPanel";
 import { WebsiteMediaProvider } from "./WebsiteMediaContext";
 
 type WorkspacePane = "editor" | "preview";
@@ -98,6 +99,7 @@ export function WebsiteEditor({
   const [saveState, setSaveState] = useState<SaveUiState>("saved");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [viewingVersion, setViewingVersion] = useState<{
     version: WebsiteVersionSummary;
@@ -128,7 +130,7 @@ export function WebsiteEditor({
   };
 
   useEffect(() => {
-    if (!focusPreview && !historyOpen && !viewingVersion) {
+    if (!focusPreview && !historyOpen && !viewingVersion && !reviewOpen) {
       return;
     }
 
@@ -144,12 +146,16 @@ export function WebsiteEditor({
         setHistoryOpen(false);
         return;
       }
+      if (reviewOpen) {
+        setReviewOpen(false);
+        return;
+      }
       setFocusPreview(false);
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusPreview, historyOpen, viewingVersion]);
+  }, [focusPreview, historyOpen, viewingVersion, reviewOpen]);
 
   function resetEditor() {
     const confirmed = window.confirm(
@@ -445,6 +451,16 @@ export function WebsiteEditor({
                 >
                   Version History
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHistoryOpen(false);
+                    setReviewOpen(true);
+                  }}
+                  className={toolbarButton}
+                >
+                  Client Review
+                </button>
                 {persistence ? (
                   <a
                     href={getSavedWebsitePreviewPath(persistence.websiteId)}
@@ -582,6 +598,15 @@ export function WebsiteEditor({
             setViewingVersion({ version, content: restoredContent })
           }
           onRestore={applyRestoredVersion}
+        />
+      ) : null}
+
+      {persistence ? (
+        <ClientReviewPanel
+          websiteId={persistence.websiteId}
+          websiteStatus={status}
+          open={reviewOpen && !viewingVersion}
+          onClose={() => setReviewOpen(false)}
         />
       ) : null}
 

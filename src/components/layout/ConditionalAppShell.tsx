@@ -8,7 +8,8 @@ export function ConditionalAppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isStandaloneWebsite =
     /^\/templates\/[^/]+\/preview\/?$/.test(pathname) ||
-    /^\/site\/[^/]+\/?$/.test(pathname);
+    /^\/site\/[^/]+\/?$/.test(pathname) ||
+    /^\/review\/[^/]+\/?$/.test(pathname);
 
   if (isStandaloneWebsite) {
     return children;
