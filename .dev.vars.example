@@ -1,0 +1,5 @@
+# Local OpenNext / Wrangler development values only.
+# Copy to `.dev.vars` if needed. Do not put secrets here.
+# `.dev.vars` is gitignored.
+
+NEXTJS_ENV=development

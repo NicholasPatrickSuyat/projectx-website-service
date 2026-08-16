@@ -1,22 +1,10 @@
-import { getPlatformProxy } from "wrangler";
-import type { D1Database } from "@cloudflare/workers-types";
+import "server-only";
+import { getRequiredDatabaseBinding } from "@/lib/runtime/env";
 
-type CloudflareEnv = {
-  DB: D1Database;
-};
+export async function getDb() {
+  return getRequiredDatabaseBinding();
+}
 
-type PlatformProxy = Awaited<ReturnType<typeof getPlatformProxy<CloudflareEnv>>>;
-
-let platformProxyPromise: Promise<PlatformProxy> | null = null;
-
-export async function getDb(): Promise<D1Database> {
-  if (!platformProxyPromise) {
-    platformProxyPromise = getPlatformProxy<CloudflareEnv>({
-      persist: true,
-      remoteBindings: false,
-    });
-  }
-
-  const { env } = await platformProxyPromise;
-  return env.DB;
+export async function getDatabase() {
+  return getDb();
 }

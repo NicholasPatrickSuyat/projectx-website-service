@@ -1,4 +1,3 @@
-import { Buffer } from "node:buffer";
 import { getWebsiteMediaById } from "@/lib/website-media/repository";
 import { getWebsiteMediaStorage } from "@/lib/website-media/storage";
 import { isWebsiteId } from "@/lib/websites/validation";
@@ -23,15 +22,13 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const bytes = await getWebsiteMediaStorage().read(
-    media.websiteId,
-    media.storedFilename,
-  );
+  const storage = await getWebsiteMediaStorage();
+  const bytes = await storage.read(media.websiteId, media.storedFilename);
   if (!bytes) {
     return new Response("Not found", { status: 404 });
   }
 
-  return new Response(Buffer.from(bytes), {
+  return new Response(bytes as unknown as BodyInit, {
     status: 200,
     headers: {
       "Content-Type": media.mimeType,

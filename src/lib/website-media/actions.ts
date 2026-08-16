@@ -120,7 +120,7 @@ export async function uploadWebsiteMediaAction(
 
   const id = crypto.randomUUID();
   const storedFilename = `${id}.${inspected.extension}`;
-  const storage = getWebsiteMediaStorage();
+  const storage = await getWebsiteMediaStorage();
 
   await storage.write(websiteId, storedFilename, bytes);
 

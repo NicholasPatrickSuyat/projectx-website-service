@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "npm run db:migrate && next dev --port 3002",
     "build": "next build",
+    "build:cloudflare": "opennextjs-cloudflare build",
+    "preview:cloudflare": "opennextjs-cloudflare preview --port 3002",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -12,6 +14,7 @@
     "db:seed": "wrangler d1 execute projectx-website-service --local --file=scripts/seed-clients.sql"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.2",
     "next": "16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
