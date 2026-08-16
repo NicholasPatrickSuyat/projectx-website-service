@@ -42,8 +42,26 @@ export function isBundledTemplateAssetPath(pathname: string): boolean {
   return BUNDLED_TEMPLATE_ASSET_EXTENSIONS.has(extension);
 }
 
+export function isPublicHostPath(pathname: string): boolean {
+  return pathname === "/host" || pathname.startsWith("/host/");
+}
+
+export function isSharedPublicResourcePath(pathname: string): boolean {
+  return (
+    isBundledTemplateAssetPath(pathname) ||
+    pathname.startsWith("/review/") ||
+    pathname.startsWith("/media/") ||
+    pathname.startsWith("/_next/") ||
+    pathname === "/favicon.ico"
+  );
+}
+
 export function isPublicPath(pathname: string): boolean {
-  if (PUBLIC_EXACT_PATHS.has(pathname) || isBundledTemplateAssetPath(pathname)) {
+  if (
+    PUBLIC_EXACT_PATHS.has(pathname) ||
+    isBundledTemplateAssetPath(pathname) ||
+    isPublicHostPath(pathname)
+  ) {
     return true;
   }
 

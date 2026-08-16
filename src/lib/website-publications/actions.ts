@@ -55,6 +55,7 @@ function revalidatePublishPaths(
   revalidatePath("/clients");
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/");
+  revalidatePath("/host");
   revalidatePath(getPublishedWebsitePreviewPath(websiteId));
   if (reviewToken) {
     revalidatePath(getReviewPath(reviewToken));

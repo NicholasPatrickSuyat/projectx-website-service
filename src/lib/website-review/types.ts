@@ -13,6 +13,8 @@ export const WEBSITE_REVIEW_STATUS_LABELS: Record<WebsiteReviewStatus, string> =
 export const REVIEW_FEEDBACK_MAX_LENGTH = 2000;
 export const REVIEW_TOKEN_BYTES = 32;
 export const REVIEW_TOKEN_PATTERN = /^[0-9a-f]{64}$/;
+export const REVIEW_MEDIA_COOKIE = "pxws_review_media";
+export const REVIEW_MEDIA_COOKIE_MAX_AGE_SECONDS = 12 * 60 * 60;
 
 export type WebsiteReviewSession = {
   id: string;

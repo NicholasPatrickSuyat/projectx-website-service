@@ -61,6 +61,7 @@ import { UnsavedChangesGuard } from "./UnsavedChangesGuard";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
 import { ClientReviewPanel } from "./ClientReviewPanel";
 import { PublicationHistoryPanel } from "./PublicationHistoryPanel";
+import { WebsiteDomainsPanel } from "./WebsiteDomainsPanel";
 import { WebsiteMediaProvider } from "./WebsiteMediaContext";
 
 type WorkspacePane = "editor" | "preview";
@@ -110,6 +111,7 @@ export function WebsiteEditor({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [publicationsOpen, setPublicationsOpen] = useState(false);
+  const [domainsOpen, setDomainsOpen] = useState(false);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
   const [publicationRefreshKey, setPublicationRefreshKey] = useState(0);
@@ -154,6 +156,7 @@ export function WebsiteEditor({
       !viewingVersion &&
       !reviewOpen &&
       !publicationsOpen &&
+      !domainsOpen &&
       !viewingPublication
     ) {
       return;
@@ -183,6 +186,10 @@ export function WebsiteEditor({
         setReviewOpen(false);
         return;
       }
+      if (domainsOpen) {
+        setDomainsOpen(false);
+        return;
+      }
       setFocusPreview(false);
     };
 
@@ -194,6 +201,7 @@ export function WebsiteEditor({
     viewingVersion,
     reviewOpen,
     publicationsOpen,
+    domainsOpen,
     viewingPublication,
   ]);
 
@@ -558,6 +566,7 @@ export function WebsiteEditor({
                   onClick={() => {
                     setReviewOpen(false);
                     setPublicationsOpen(false);
+                    setDomainsOpen(false);
                     setHistoryOpen(true);
                   }}
                   className={toolbarButton}
@@ -568,7 +577,20 @@ export function WebsiteEditor({
                   type="button"
                   onClick={() => {
                     setHistoryOpen(false);
+                    setReviewOpen(false);
                     setPublicationsOpen(false);
+                    setDomainsOpen(true);
+                  }}
+                  className={toolbarButton}
+                >
+                  Hostnames
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHistoryOpen(false);
+                    setPublicationsOpen(false);
+                    setDomainsOpen(false);
                     setReviewOpen(true);
                   }}
                   className={toolbarButton}
@@ -580,6 +602,7 @@ export function WebsiteEditor({
                   onClick={() => {
                     setHistoryOpen(false);
                     setReviewOpen(false);
+                    setDomainsOpen(false);
                     setPublicationsOpen(true);
                   }}
                   className={toolbarButton}
@@ -776,6 +799,14 @@ export function WebsiteEditor({
           open={reviewOpen && !viewingVersion && !viewingPublication}
           refreshKey={reviewRefreshKey}
           onClose={() => setReviewOpen(false)}
+        />
+      ) : null}
+
+      {persistence ? (
+        <WebsiteDomainsPanel
+          websiteId={persistence.websiteId}
+          open={domainsOpen && !viewingVersion && !viewingPublication}
+          onClose={() => setDomainsOpen(false)}
         />
       ) : null}
 
