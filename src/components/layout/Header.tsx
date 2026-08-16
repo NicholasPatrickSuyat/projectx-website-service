@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 import { MenuIcon } from "@/components/icons";
 import { getActiveNavItem } from "@/lib/navigation";
 
@@ -42,6 +43,7 @@ export function Header({ menuOpen, onMenuClick }: HeaderProps) {
             <span className="sm:hidden">Internal</span>
             <span className="hidden sm:inline">Internal Project X Tool</span>
           </span>
+          <LogoutButton />
           <span
             className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-sidebar text-xs font-semibold text-white"
             aria-label="Admin"

@@ -4,8 +4,9 @@ Internal Project X application for creating professional client websites from re
 
 This is a private admin tool. Customers do not log in.
 
-**Do not expose this application publicly with real Client data until
-authentication/access control is implemented.**
+**Admin authentication is implemented for this internal tool. Do not expose
+the application publicly with real Client data until a later deployment
+milestone is explicitly approved.**
 
 ## Local development
 
@@ -22,6 +23,23 @@ Port 3002 is reserved for this project. Do not use port 3000.
 Local client records are stored in Wrangler’s local D1 emulator under `.wrangler/`. This is not a Cloudflare-hosted database.
 
 Website media uploaded in local development is stored under `storage/` and is gitignored.
+
+Local admin authentication uses gitignored `.dev.vars` values. Copy
+[`.dev.vars.example`](.dev.vars.example), set `ADMIN_USERNAME` and
+`AUTH_SESSION_SECRET`, and generate `ADMIN_PASSWORD_HASH` with:
+
+```bash
+node scripts/hash-admin-password.mjs "<your-local-password>"
+```
+
+Do not commit passwords, password hashes used as production credentials, or
+session secrets. Production must later use Cloudflare Worker secrets, not git.
+
+Unauthenticated visits to internal admin routes redirect to `/login`.
+Client Review remains token-based at `/review/[token]` and does not use the
+admin login. `/media/[id]` stays available for legitimate rendered Website
+images. `/site/[websiteId]` and `/published/[websiteId]` are local preview
+routes and require admin authentication.
 
 Optional development seed (never automatic):
 

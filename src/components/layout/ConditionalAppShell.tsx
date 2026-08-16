@@ -7,6 +7,7 @@ import { AppShell } from "@/components/layout/AppShell";
 export function ConditionalAppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isStandaloneWebsite =
+    /^\/login\/?$/.test(pathname) ||
     /^\/templates\/[^/]+\/preview\/?$/.test(pathname) ||
     /^\/site\/[^/]+\/?$/.test(pathname) ||
     /^\/review\/[^/]+\/?$/.test(pathname) ||

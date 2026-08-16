@@ -17,7 +17,8 @@ Project X Website Service after Milestone 15.
 - Current cost: $0
 
 Do not expose this internal admin application publicly with real Client data
-until authentication and access control are implemented.
+until a later deployment milestone is explicitly approved. Admin authentication
+is implemented in Milestone 16; it is not a public launch.
 
 ## Target architecture
 
@@ -99,7 +100,7 @@ A later deployment milestone must explicitly:
 3. Create the production Worker/application
 4. Create/configure production D1 (the current `database_id` in
    `wrangler.jsonc` is a **local placeholder**, not a real database)
-5. Apply migrations `0001`–`0008` remotely
+5. Apply migrations `0001`–`0009` remotely
 6. Create/configure production R2 for Client media (the current
    `bucket_name` is an **unprovisioned local identifier**)
 7. Bind `DB` and `MEDIA`
@@ -129,6 +130,10 @@ Before any real production deployment, Project X must review:
 Do not enable billing, automatically upgrade a plan, or purchase a paid
 service from this repository.
 
+Admin authentication uses PBKDF2-HMAC-SHA256 at 600,000 iterations. Cloudflare Workers Free currently has a 10 ms CPU-time limit per HTTP request. Local workerd timing cannot establish production CPU accounting for Web Crypto PBKDF2. Free-plan compatibility is therefore considered INCONCLUSIVE and must be verified/resolved before production deployment. Do not lower the password work factor or enable a paid Cloudflare plan without explicit approval.
+
+This is a later-deployment decision, not a user-facing runtime warning.
+
 ## Production-readiness checklist
 
 Complete only in a later deployment milestone after explicit approval.
@@ -142,18 +147,89 @@ Complete only in a later deployment milestone after explicit approval.
 - [ ] R2 created/enabled
 - [ ] bindings configured
 - [ ] secrets configured
-- [ ] **admin auth completed**
+- [ ] **admin auth completed** (implemented locally in Milestone 16; production secrets are not created yet)
+- [ ] **Workers Free CPU compatibility for PBKDF2-600k resolved** (currently INCONCLUSIVE; do not enable a paid plan or weaken hashing without explicit approval)
 - [ ] production smoke test
 - [ ] domain strategy approved
 
 ### Authentication warning
 
 **DO NOT expose the internal admin application publicly with real Client data
-until authentication/access control is implemented.**
+until a later deployment milestone is explicitly approved.**
 
-Authentication is not implemented in Milestone 15 and must not be added here.
+Milestone 16 implements one-admin internal authentication. It does not deploy
+the app, create Cloudflare secrets, or make Client Review require an admin
+account.
 
-## Commands that must not be used for M15
+## Admin authentication
+
+V1 protects the internal Project X administration UI for **one operator**.
+This is not a customer/SaaS account system.
+
+### Architecture
+
+- Username + password from environment configuration
+- Password stored as PBKDF2-HMAC-SHA256
+  (`pbkdf2-sha256$iterations$salt$hash`, new hashes use 600,000 iterations;
+  verification uses the iteration count encoded in the hash)
+- Signed HttpOnly session cookie (`pxws_admin_session`)
+- HMAC-SHA256 over the session payload using `AUTH_SESSION_SECRET`
+- 12-hour session expiration
+- Logout clears the cookie and the D1 session row
+- SameSite=Lax; Secure on HTTPS, not on localhost HTTP
+- Failed logins are throttled in D1 using an HMAC of the client network
+  key (raw IP is not stored). 5 failures in a 15-minute window cause a
+  15-minute cooldown. Successful login clears that key's failures.
+- Server Actions check the session on the server
+- `src/middleware.ts` redirects unauthenticated admin routes (OpenNext does
+  not support Next.js 16 `proxy.ts` Node middleware)
+- Admin App Router layout also verifies the session
+
+No auth customer-account system is used. Migration `0009_create_admin_session.sql`
+adds `admin_auth_session` (current session id for logout revocation) and
+`admin_auth_login_throttle` (privacy-minimized login failure state).
+Migrations 0001–0008 are unchanged.
+
+### Public / token routes
+
+| Route | Access | Why |
+|---|---|---|
+| `/login` | Public | Admin sign-in |
+| `/review/[token]` | Public with review token | Client Review must not require an admin account |
+| `/media/[mediaId]` GET | Public | Review, standalone, and published previews render `/media/{id}` |
+| `/site/[websiteId]` | Admin session | Local saved-draft preview, not a deployed customer site |
+| `/published/[websiteId]` | Admin session | Local published-snapshot preview, not a public domain |
+
+Protecting `/site` and `/published` does not break Client Review because
+review uses `/review/[token]` and `/media/{id}` only. Future public websites
+must not be these local preview routes.
+
+Review-token Server Actions (`submitReviewFeedbackAction`,
+`approveReviewAction`, `getClientReviewByToken`) stay token-authorized and
+must not create an admin session.
+
+### Required configuration
+
+Local `.dev.vars` (gitignored):
+
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD_HASH`
+- `AUTH_SESSION_SECRET` (at least 32 characters)
+
+Generate a local hash:
+
+```bash
+node scripts/hash-admin-password.mjs "<your-local-password>"
+```
+
+Future production must set the same names as Cloudflare Worker secrets.
+Do not put production values in git, `wrangler.jsonc` vars, or
+`.dev.vars.example`. Milestone 16 does **not** create those secrets.
+
+Missing auth configuration fails closed: login is unavailable and no session
+is accepted.
+
+## Commands that must not be used for M15/M16
 
 - `wrangler deploy`
 - `wrangler d1 ... --remote`

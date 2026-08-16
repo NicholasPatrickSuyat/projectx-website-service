@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getAdminActionError } from "@/lib/auth/guard";
 import { parseWebsiteContentJson } from "@/lib/websites/content";
 import {
   getWebsiteById,
@@ -48,6 +49,11 @@ async function revalidateReviewPaths(
 export async function getWebsiteReviewAction(
   websiteId: string,
 ): Promise<WebsiteReviewMutationResult | { ok: true; review: null }> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   if (!isWebsiteId(websiteId)) {
     return { ok: false, error: "Website ID is invalid." };
   }
@@ -64,6 +70,11 @@ export async function getWebsiteReviewAction(
 export async function createWebsiteReviewAction(
   websiteId: string,
 ): Promise<WebsiteReviewMutationResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   if (!isWebsiteId(websiteId)) {
     return { ok: false, error: "Website ID is invalid." };
   }
@@ -81,6 +92,11 @@ export async function createWebsiteReviewAction(
 export async function regenerateWebsiteReviewTokenAction(
   websiteId: string,
 ): Promise<WebsiteReviewMutationResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   if (!isWebsiteId(websiteId)) {
     return { ok: false, error: "Website ID is invalid." };
   }
@@ -106,6 +122,7 @@ export async function regenerateWebsiteReviewTokenAction(
 export async function getClientReviewByToken(
   token: string,
 ): Promise<ClientReviewPageData | null> {
+  // Public: authorized by the review token, not an admin session.
   if (!isReviewToken(token)) {
     return null;
   }
@@ -140,6 +157,7 @@ export async function submitReviewFeedbackAction(
   token: string,
   formData: FormData,
 ): Promise<ClientReviewActionResult> {
+  // Public: authorized by the review token, not an admin session.
   if (!isReviewToken(token)) {
     return { ok: false, error: "This review link is unavailable." };
   }
@@ -167,6 +185,7 @@ export async function submitReviewFeedbackAction(
 export async function approveReviewAction(
   token: string,
 ): Promise<ClientReviewActionResult> {
+  // Public: authorized by the review token, not an admin session.
   if (!isReviewToken(token)) {
     return { ok: false, error: "This review link is unavailable." };
   }

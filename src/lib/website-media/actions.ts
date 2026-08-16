@@ -1,5 +1,6 @@
 "use server";
 
+import { getAdminActionError } from "@/lib/auth/guard";
 import {
   extensionFromOriginalFilename,
   inspectWebsiteImageBytes,
@@ -70,6 +71,11 @@ function isUploadedFile(value: FormDataEntryValue | null): value is File {
 export async function listWebsiteMediaAction(
   websiteId: string,
 ): Promise<ListWebsiteMediaResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   const found = await requireWebsite(websiteId);
   if (!found.ok) {
     return { ok: false, error: found.error };
@@ -83,6 +89,11 @@ export async function uploadWebsiteMediaAction(
   websiteId: string,
   formData: FormData,
 ): Promise<UploadWebsiteMediaResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   const found = await requireWebsite(websiteId);
   if (!found.ok) {
     return { ok: false, error: found.error };

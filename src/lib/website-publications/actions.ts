@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getAdminActionError } from "@/lib/auth/guard";
 import { cloneContent } from "@/lib/templates/editor";
 import type { WebsiteContent } from "@/lib/templates/types";
 import { canPublishWebsite } from "@/lib/domain";
@@ -63,6 +64,11 @@ function revalidatePublishPaths(
 export async function listWebsitePublicationsAction(
   websiteId: string,
 ): Promise<ListWebsitePublicationsResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   if (!isWebsiteId(websiteId)) {
     return { ok: false, error: "Website ID is invalid." };
   }
@@ -75,6 +81,11 @@ export async function getWebsitePublicationAction(
   websiteId: string,
   publicationId: string,
 ): Promise<GetWebsitePublicationResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   if (!isWebsiteId(websiteId) || !isWebsiteId(publicationId)) {
     return { ok: false, error: "Publication ID is invalid." };
   }
@@ -117,6 +128,11 @@ export async function getWebsitePublicationAction(
 export async function publishWebsiteAction(
   websiteId: string,
 ): Promise<PublishWebsiteResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   if (!isWebsiteId(websiteId)) {
     return { ok: false, error: "Website ID is invalid." };
   }

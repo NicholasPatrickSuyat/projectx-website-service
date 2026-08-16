@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getAdminActionError } from "@/lib/auth/guard";
 import { getClientById } from "@/lib/clients/repository";
 import type { EditorErrors } from "@/lib/templates/editor";
 import type { WebsiteRecordStatus } from "@/lib/domain";
@@ -63,6 +64,11 @@ export async function createWebsiteAction(
   _prevState: CreateWebsiteActionState,
   formData: FormData,
 ): Promise<CreateWebsiteActionState> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { error: denied };
+  }
+
   const parsed = validateCreateWebsiteInput(formData);
   if (!parsed.ok) {
     return { error: parsed.error, fieldErrors: parsed.fieldErrors };
@@ -108,6 +114,11 @@ export async function saveWebsiteDraftAction(
   websiteId: string,
   contentJson: string,
 ): Promise<WebsiteMutationResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   if (!isWebsiteId(websiteId)) {
     return { ok: false, error: "Website ID is invalid." };
   }
@@ -167,6 +178,11 @@ export async function updateWebsiteStatusAction(
   websiteId: string,
   nextStatus: string,
 ): Promise<WebsiteMutationResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   if (!isWebsiteId(websiteId)) {
     return { ok: false, error: "Website ID is invalid." };
   }

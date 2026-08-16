@@ -1,5 +1,6 @@
 "use server";
 
+import { getAdminActionError } from "@/lib/auth/guard";
 import { cloneContent } from "@/lib/templates/editor";
 import type { WebsiteContent } from "@/lib/templates/types";
 import {
@@ -26,6 +27,11 @@ export type GetWebsiteVersionResult =
 export async function listWebsiteVersionsAction(
   websiteId: string,
 ): Promise<ListWebsiteVersionsResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   if (!isWebsiteId(websiteId)) {
     return { ok: false, error: "Website ID is invalid." };
   }
@@ -38,6 +44,11 @@ export async function getWebsiteVersionAction(
   websiteId: string,
   versionId: string,
 ): Promise<GetWebsiteVersionResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
   if (!isWebsiteId(websiteId) || !isWebsiteId(versionId)) {
     return { ok: false, error: "Version ID is invalid." };
   }

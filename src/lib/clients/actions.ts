@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getAdminActionError, requireAdminPage } from "@/lib/auth/guard";
 import {
   createClient,
   setClientStatus,
@@ -21,6 +22,11 @@ export async function createClientAction(
   _prevState: ClientActionState,
   formData: FormData,
 ): Promise<ClientActionState> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { error: denied };
+  }
+
   const parsed = validateClientInput(formData);
 
   if (!parsed.ok) {
@@ -38,6 +44,11 @@ export async function updateClientAction(
   _prevState: ClientActionState,
   formData: FormData,
 ): Promise<ClientActionState> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { error: denied };
+  }
+
   if (!id) {
     return { error: "Client ID is missing." };
   }
@@ -61,6 +72,7 @@ export async function updateClientAction(
 }
 
 export async function markClientInactiveAction(id: string): Promise<void> {
+  await requireAdminPage();
   if (!id) {
     throw new Error("Client ID is missing.");
   }
@@ -78,6 +90,7 @@ export async function markClientInactiveAction(id: string): Promise<void> {
 }
 
 export async function reactivateClientAction(id: string): Promise<void> {
+  await requireAdminPage();
   if (!id) {
     throw new Error("Client ID is missing.");
   }

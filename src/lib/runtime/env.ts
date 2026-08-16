@@ -12,6 +12,9 @@ const MISSING_MEDIA_BINDING =
 type AppCloudflareEnv = CloudflareEnv & {
   DB?: D1Database;
   MEDIA?: MediaObjectStore;
+  ADMIN_USERNAME?: string;
+  ADMIN_PASSWORD_HASH?: string;
+  AUTH_SESSION_SECRET?: string;
 };
 
 export function isCloudflareWorkersRuntime(): boolean {
