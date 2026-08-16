@@ -20,6 +20,10 @@ Do not expose this internal admin application publicly with real Client data
 until a later deployment milestone is explicitly approved. Admin authentication
 is implemented in Milestone 16; it is not a public launch.
 
+Milestone 17 production hosting, cost, and CPU-gate research lives in
+[`docs/deployment-decision.md`](deployment-decision.md). Do not create remote
+Worker, D1, R2, domain, or paid resources until that checklist is approved.
+
 ## Target architecture
 
 ### Local development (`npm run dev`)

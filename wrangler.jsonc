@@ -7,7 +7,8 @@
     "nodejs_compat",
     "global_fetch_strictly_public"
   ],
-  // Do not publish a workers.dev hostname. This admin app has no auth yet.
+  // Do not publish a workers.dev hostname. Production Client sites must use
+  // a Workers route or Custom Domain after an approved deployment milestone.
   "workers_dev": false,
   "assets": {
     "directory": ".open-next/assets",
