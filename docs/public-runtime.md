@@ -4,6 +4,9 @@
 build target. It does not authorize creating a remote Worker, D1, R2,
 domain, DNS record, or paid Cloudflare service.
 
+Production infrastructure planning:
+[`docs/production-infrastructure.md`](production-infrastructure.md).
+
 ## Why this exists
 
 Milestone 17 approved Option C: public Client websites on Cloudflare,
@@ -154,21 +157,26 @@ never imports `getVerifiedAdminSession` / `getAdminAuthConfig`, and uses
 
 Workers Free CPU for PBKDF2 is therefore an **admin-host** question, not
 a public Client-site question. Public OpenNext SSR CPU on Workers Free
-remains **INCONCLUSIVE** without a remote deployment.
+remains **UNPROVEN** / **INCONCLUSIVE** without a remote deployment.
+Local workerd wall-clock is not production CPU accounting.
 
 ## Future production deployment plan
 
+Follow [`docs/production-infrastructure.md`](production-infrastructure.md).
 A later approved milestone would still need to:
 
 1. Re-check current Cloudflare pricing and Workers Free CPU
-2. Create a remote Worker from the **public** artifact only
-3. Create/bind production D1 and R2 (shared with a still-private admin)
-4. Apply migrations remotely
-5. Configure Custom Domains / routes (not `workers.dev`)
-6. Set production secrets **without** requiring admin credentials on the
-   public Worker
-7. Smoke-test CPU and hostname isolation with real Client data **off**
-   this local repo’s first deploy attempt until explicitly approved
+2. Run the designed Workers Free CPU smoke test (public Worker only;
+   temporary `workers.dev`; no customer domain)
+3. Create a remote Worker from the **public** artifact only **after** CPU
+   review
+4. Create/bind production D1 (empty) and, only if checkout risk is
+   accepted, private R2
+5. Apply migrations 0001–0010 remotely to empty production D1
+6. Configure Custom Domains / routes (not `workers.dev` for Client URLs)
+7. Set production secrets **without** requiring admin credentials on the
+   public Worker (none required today)
+8. Do not copy local Cedar/Copper/Linden data into production
 
 Until then:
 

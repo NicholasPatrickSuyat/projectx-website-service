@@ -12,6 +12,7 @@
     "preview:cloudflare": "opennextjs-cloudflare preview --port 3002",
     "preview:cloudflare:public": "node scripts/preview-cloudflare-public.mjs",
     "test:public": "node scripts/smoke-public-runtime.mjs",
+    "preflight:production": "node scripts/preflight-production.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit && tsc --noEmit -p public-runtime/tsconfig.json",

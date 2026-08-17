@@ -614,11 +614,11 @@ risk.
 **Blockers before any remote resource:**
 
 - Option C public/admin split is implemented **locally** in Milestone 19; it is **not** deployed
-- Public-Worker OpenNext SSR CPU on Free is still INCONCLUSIVE
+- Public-Worker OpenNext SSR CPU on Free is still **UNPROVEN** (see Milestone 20 CPU smoke-test design)
 - Hostname routing / published-only lookup is implemented locally (migration `0010` / `website_domains`); DNS/Custom Domains are not
 - Admin remains local until a host is approved
-- R2 payment-method requirement is INCONCLUSIVE
-- No production secrets, backups, or migration plan exists yet
+- R2 official Get started requires a **checkout / R2 subscription**. Whether a payment method is required to finish checkout is **INCONCLUSIVE**; overage after subscribe is **uncapped**. Do not create R2 until that risk is accepted
+- Production D1/R2/Worker names, backups, empty-DB strategy, and Milestone 21 gates: [`docs/production-infrastructure.md`](production-infrastructure.md)
 
 If ChatGPT instead accepts **Option B**, the honest cost statement is:
 **$5/month floor, uncapped usage overage, budget alerts are not a cap.**
@@ -654,14 +654,15 @@ Stop and get that acceptance in writing before enabling Paid.
 ## 9. Future refactor notes
 
 Milestone 19 implemented the local public/admin split
-(`docs/public-runtime.md`). Still required before any production Client
-site:
+(`docs/public-runtime.md`). Milestone 20 is research/preflight only
+(`docs/production-infrastructure.md`). Still required before any
+production Client site:
 
 - Deploy a public-only Worker (not done; **NO REAL DEPLOYMENT YET**)
+- Production CPU smoke test on Workers Free (designed, not executed)
 - Configure Custom Domains / DNS (not done)
-- Re-measure public OpenNext SSR CPU on Cloudflare (local wall-clock is
-  not production CPU accounting)
-- Decide admin host (local vs VPS vs later Paid Worker)
+- Accept or refuse R2 checkout / uncapped overage risk
+- Decide admin-to-production management (Option A recommended; not implemented)
 
 Do not add Access, Stripe, or paid Cloudflare products without a separate
 approval.
@@ -669,6 +670,9 @@ approval.
 ---
 
 ## 10. Official sources (retrieved 2026-08-15 / 2026-08-16 UTC)
+
+Milestone 20 re-checked these and additional URLs on **2026-08-16**.
+Canonical list: [`docs/production-infrastructure.md`](production-infrastructure.md) §15.
 
 - https://developers.cloudflare.com/workers/platform/pricing/
 - https://developers.cloudflare.com/workers/platform/limits/

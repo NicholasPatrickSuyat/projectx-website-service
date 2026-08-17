@@ -3,9 +3,11 @@
 This document describes the intended future production architecture for
 Project X Website Service.
 
-**No milestone through Milestone 19 deploys anything.** Do not create a
+**No milestone through Milestone 20 deploys anything.** Do not create a
 remote Worker, D1, R2, domain, or paid resource from this repository.
 
+Production deployment planning (Milestone 20):
+[`docs/production-infrastructure.md`](production-infrastructure.md).
 Public vs private split details: [`docs/public-runtime.md`](public-runtime.md).
 Hosting/cost research: [`docs/deployment-decision.md`](deployment-decision.md).
 
@@ -268,7 +270,7 @@ is accepted.
 The public runtime does not read these values and must not fail to boot
 when they are absent.
 
-## Commands that must not be used for M15–M19
+## Commands that must not be used for M15–M20
 
 - `wrangler deploy`
 - `wrangler d1 ... --remote`

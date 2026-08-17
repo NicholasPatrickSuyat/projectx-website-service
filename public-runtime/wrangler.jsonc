@@ -9,6 +9,8 @@
   ],
   // Local public-runtime target only. Do not publish a workers.dev hostname.
   // Do not deploy this Worker.
+  // Proposed future public Worker name: projectx-websites-public
+  // (see docs/production-infrastructure.md). Do not create it from this file.
   "workers_dev": false,
   "assets": {
     "directory": ".open-next/assets",

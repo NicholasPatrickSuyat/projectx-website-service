@@ -9,6 +9,8 @@
   ],
   // Do not publish a workers.dev hostname. Production Client sites must use
   // a Workers route or Custom Domain after an approved deployment milestone.
+  // Proposed future public Worker name: projectx-websites-public
+  // (see docs/production-infrastructure.md). Do not create it from this file.
   "workers_dev": false,
   "assets": {
     "directory": ".open-next/assets",
