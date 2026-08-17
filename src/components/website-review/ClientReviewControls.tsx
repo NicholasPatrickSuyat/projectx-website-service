@@ -5,7 +5,7 @@ import {
   approveReviewAction,
   submitReviewFeedbackAction,
   type ClientReviewActionResult,
-} from "@/lib/website-review/actions";
+} from "@/lib/website-review/public-actions";
 import {
   REVIEW_FEEDBACK_MAX_LENGTH,
   formatReviewDateTime,

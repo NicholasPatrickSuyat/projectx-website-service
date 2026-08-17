@@ -5,12 +5,17 @@
 **Baseline commit:** `661ce587bf52b33e89ed2cf87bcd4789b3c6b006` (`661ce58`)
 **This document does not authorize deployment.**
 
+Milestone 18 implemented hostname → latest publication routing locally.
+Milestone 19 implemented a separate public Next.js/OpenNext build target
+locally (`docs/public-runtime.md`). Neither milestone created remote
+resources. **NO REAL DEPLOYMENT YET.**
+
 Approved production direction (**Option C**):
 
 - Public Client runtime: one Cloudflare Worker on **Workers Free** (initial target)
 - Private admin: remains local; do not deploy the admin application yet
 - One shared production D1 and one shared production R2 (when a later milestone is approved to create them)
-- Many Client hostnames on one Worker (hostname routing is **not** implemented in Milestone 17)
+- Many Client hostnames on one Worker (hostname routing implemented locally in Milestone 18; not deployed)
 - Keep `/media/{id}` for the first Client; no public R2 hostname yet
 - PBKDF2-HMAC-SHA256 stays at **600,000** iterations
 - Workers Paid, Cloudflare Access, and payment information are **not** approved
@@ -397,17 +402,18 @@ Do **not** create one Worker per Client. Workers Free allows 100 Workers;
 Paid allows 500. Per-Client Workers multiply deploy, secrets, and CPU
 risk without helping early-stage cost.
 
-### Hostname lookup (not implemented)
+### Hostname lookup (implemented locally in Milestone 18; not deployed)
 
 1. Client (or Project X) points the hostname at Cloudflare (Custom Domain or
-   route on a Project X zone).
+   route on a Project X zone). **Not configured yet.**
 2. The Worker reads `Host`.
-3. D1 looks up a future `website_hostnames` (or equivalent) row:
-   `hostname → website_id` (unique, published-only).
-4. Load that website’s **publication snapshot**, not the live draft.
-5. Unknown host → clean 404. Never fall back to another Client.
+3. D1 looks up `website_domains`:
+   `hostname → website_id` (unique). Public rendering loads the **latest
+   publication snapshot**, not the live draft.
+4. Unknown host → clean 404. Never fall back to another Client.
 
-This needs a later schema/migration. **Do not add migration 0010 now.**
+Migration `0010_create_website_domains.sql` exists. Do not add migration
+`0011` for DNS/ownership. Custom Domains are still not configured.
 
 ### Custom domains
 
@@ -607,9 +613,9 @@ risk.
 
 **Blockers before any remote resource:**
 
-- Option C is approved; later milestones still must implement the public/admin split and hostname routing
+- Option C public/admin split is implemented **locally** in Milestone 19; it is **not** deployed
 - Public-Worker OpenNext SSR CPU on Free is still INCONCLUSIVE
-- Hostname routing / published-only lookup is not built
+- Hostname routing / published-only lookup is implemented locally (migration `0010` / `website_domains`); DNS/Custom Domains are not
 - Admin remains local until a host is approved
 - R2 payment-method requirement is INCONCLUSIVE
 - No production secrets, backups, or migration plan exists yet
@@ -645,18 +651,20 @@ Stop and get that acceptance in writing before enabling Paid.
 
 ---
 
-## 9. Future refactor notes (not this milestone)
+## 9. Future refactor notes
 
-If Option C is approved, a later milestone would need to:
+Milestone 19 implemented the local public/admin split
+(`docs/public-runtime.md`). Still required before any production Client
+site:
 
-- Deploy a public-only Worker (or equivalent routing) without admin login
-- Add hostname → website mapping (new migration then, not 0010 now)
-- Serve only publication snapshots on those hostnames
-- Tighten `/media/{id}` so unpublished/other-Client objects cannot be guessed
-  from a public site
+- Deploy a public-only Worker (not done; **NO REAL DEPLOYMENT YET**)
+- Configure Custom Domains / DNS (not done)
+- Re-measure public OpenNext SSR CPU on Cloudflare (local wall-clock is
+  not production CPU accounting)
 - Decide admin host (local vs VPS vs later Paid Worker)
 
-Do not split the application, add Access, or change schema in Milestone 17.
+Do not add Access, Stripe, or paid Cloudflare products without a separate
+approval.
 
 ---
 

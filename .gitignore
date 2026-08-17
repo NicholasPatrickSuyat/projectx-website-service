@@ -35,6 +35,13 @@ yarn-error.log*
 
 # OpenNext Cloudflare build output
 .open-next/
+public-runtime/.open-next/
+public-runtime/.next/
+public-runtime/.wrangler/
+
+# Copied into the public runtime before local/public builds
+public-runtime/public/templates/
+public-runtime/public/_headers
 
 # local website media uploads
 /storage/

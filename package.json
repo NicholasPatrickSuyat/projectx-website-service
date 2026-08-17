@@ -4,12 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "npm run db:migrate && next dev --port 3002",
+    "dev:public": "npm run db:migrate && node scripts/sync-public-runtime-static.mjs && next dev ./public-runtime --port 3003",
     "build": "next build",
+    "build:public": "node scripts/sync-public-runtime-static.mjs && next build ./public-runtime",
     "build:cloudflare": "opennextjs-cloudflare build",
+    "build:cloudflare:public": "node scripts/build-cloudflare-public.mjs",
     "preview:cloudflare": "opennextjs-cloudflare preview --port 3002",
+    "preview:cloudflare:public": "node scripts/preview-cloudflare-public.mjs",
+    "test:public": "node scripts/smoke-public-runtime.mjs",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p public-runtime/tsconfig.json",
     "db:migrate": "wrangler d1 migrations apply projectx-website-service --local",
     "db:seed": "wrangler d1 execute projectx-website-service --local --file=scripts/seed-clients.sql"
   },

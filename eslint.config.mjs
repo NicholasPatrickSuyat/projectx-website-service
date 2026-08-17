@@ -15,6 +15,9 @@ const eslintConfig = defineConfig([
     "scripts/**",
     ".wrangler/**",
     ".open-next/**",
+    "public-runtime/.next/**",
+    "public-runtime/.open-next/**",
+    "public-runtime/.wrangler/**",
   ]),
 ]);
 

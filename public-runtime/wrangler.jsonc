@@ -1,0 +1,43 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "projectx-website-service-public",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-08-13",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  // Local public-runtime target only. Do not publish a workers.dev hostname.
+  // Do not deploy this Worker.
+  "workers_dev": false,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "projectx-website-service-public"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      // LOCAL / placeholder only. Same unprovisioned ID as the admin wrangler
+      // config so local persist can share one D1 emulator. Not a real database.
+      "database_name": "projectx-website-service",
+      "database_id": "00000000-0000-4000-8000-000000000001",
+      "migrations_dir": "../migrations",
+      "remote": false
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      // LOCAL emulator identifier only. No remote R2 bucket has been created.
+      "bucket_name": "projectx-website-media-unprovisioned",
+      "preview_bucket_name": "projectx-website-media-local",
+      "remote": false
+    }
+  ]
+}

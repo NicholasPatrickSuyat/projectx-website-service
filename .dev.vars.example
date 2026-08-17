@@ -13,3 +13,8 @@ NEXTJS_ENV=development
 ADMIN_USERNAME=replace-with-local-admin-username
 ADMIN_PASSWORD_HASH=pbkdf2-sha256$600000$replace-salt$replace-hash
 AUTH_SESSION_SECRET=replace-with-at-least-32-bytes-of-random-data
+
+# Public runtime (`npm run dev:public`, `npm run build:cloudflare:public`)
+# does NOT require the admin credentials above.
+# Review media uses the HttpOnly review-token cookie / Referer, not HMAC.
+# Do not add production secrets here.

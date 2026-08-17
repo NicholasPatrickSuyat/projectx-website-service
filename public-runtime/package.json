@@ -1,0 +1,8 @@
+{
+  "name": "projectx-website-service-public",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "node ../node_modules/next/dist/bin/next build"
+  }
+}

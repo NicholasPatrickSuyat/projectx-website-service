@@ -1,11 +1,15 @@
 # Production architecture and deployment readiness
 
 This document describes the intended future production architecture for
-Project X Website Service after Milestone 15.
+Project X Website Service.
 
-**Milestone 15 is production readiness only. It does not deploy anything.**
+**No milestone through Milestone 19 deploys anything.** Do not create a
+remote Worker, D1, R2, domain, or paid resource from this repository.
 
-## Current M15 state
+Public vs private split details: [`docs/public-runtime.md`](public-runtime.md).
+Hosting/cost research: [`docs/deployment-decision.md`](deployment-decision.md).
+
+## Current state
 
 - No remote Cloudflare Worker
 - No remote D1
@@ -15,6 +19,8 @@ Project X Website Service after Milestone 15.
 - No paid services enabled
 - Local development only
 - Current cost: $0
+- Admin application: `npm run dev` on port 3002
+- Public runtime target: `npm run dev:public` on port 3003 (Milestone 19)
 
 Do not expose this internal admin application publicly with real Client data
 until a later deployment milestone is explicitly approved. Admin authentication
@@ -26,18 +32,30 @@ Worker, D1, R2, domain, or paid resources until that checklist is approved.
 
 ## Target architecture
 
-### Local development (`npm run dev`)
+### Local development
+
+Admin (`npm run dev`):
 
 - Next.js on Node.js at [http://localhost:3002](http://localhost:3002)
+- Full internal application, including login/PBKDF2
 - Database: local Wrangler D1 emulator (`DB` binding, `--local` only)
 - Media: local filesystem under `storage/website-media/`
 - Website content continues to reference `/media/{id}` only
 
+Public runtime (`npm run dev:public`):
+
+- Separate Next.js app in `public-runtime/` at [http://localhost:3003](http://localhost:3003)
+- Hostname published sites, Client Review, `/media/{id}`, template assets
+- Same local D1 persist and filesystem/R2-emulator media
+- Does not require admin credentials and does not run PBKDF2
+
 ### Future production
 
-- Next.js on a Cloudflare Workers-compatible runtime via `@opennextjs/cloudflare`
-- Database: bound Cloudflare D1 (`DB`)
-- Client media: bound Cloudflare R2 (`MEDIA`)
+- **Public:** Next.js on Cloudflare Workers via `@opennextjs/cloudflare`
+  from `npm run build:cloudflare:public` only
+- **Admin:** remains local/private until a later host is approved
+- Database: one shared Cloudflare D1 (`DB`)
+- Client media: one shared Cloudflare R2 (`MEDIA`)
 - Same `/media/{id}` content model; the application never stores raw R2 URLs
   in Website, Version, or Publication JSON
 
@@ -73,25 +91,33 @@ future deployment should re-test on the intended production/CI environment.
 
 ## Cloudflare production-target build
 
+Combined/admin-capable validation artifact (does not deploy):
+
 ```bash
 npm run build:cloudflare
 ```
 
-This builds for the Workers runtime. It does not deploy.
-
-Local production-runtime preview (after the Cloudflare-target build):
+Public-only production artifact (does not deploy):
 
 ```bash
-npm run preview:cloudflare
+npm run build:cloudflare:public
 ```
 
-This serves the built Worker locally on port 3002. It does not deploy.
+Local Workers preview:
+
+```bash
+npm run preview:cloudflare          # combined, port 3002
+npm run preview:cloudflare:public   # public-only, port 3003
+```
+
+These serve built Workers locally. They do not deploy.
 
 There is intentionally **no** `deploy` npm script. Do not run
 `opennextjs-cloudflare deploy`, `wrangler deploy`, or any `--remote`
 command as part of normal validation.
 
-Build output lives in `.open-next/` and is gitignored.
+Build output lives in `.open-next/` (combined) and
+`public-runtime/.open-next/` (public). Both are gitignored.
 
 ## Future deployment requirements
 
@@ -104,7 +130,7 @@ A later deployment milestone must explicitly:
 3. Create the production Worker/application
 4. Create/configure production D1 (the current `database_id` in
    `wrangler.jsonc` is a **local placeholder**, not a real database)
-5. Apply migrations `0001`–`0009` remotely
+5. Apply migrations `0001`–`0010` remotely
 6. Create/configure production R2 for Client media (the current
    `bucket_name` is an **unprovisioned local identifier**)
 7. Bind `DB` and `MEDIA`
@@ -196,13 +222,19 @@ Migrations 0001–0008 are unchanged.
 
 ### Public / token routes
 
+On the **admin** application (port 3002):
+
 | Route | Access | Why |
 |---|---|---|
 | `/login` | Public | Admin sign-in |
 | `/review/[token]` | Public with review token | Client Review must not require an admin account |
-| `/media/[mediaId]` GET | Public | Review, standalone, and published previews render `/media/{id}` |
+| `/media/[mediaId]` GET | Authorized per hostname/review/admin session | Review, standalone, and published previews render `/media/{id}` |
 | `/site/[websiteId]` | Admin session | Local saved-draft preview, not a deployed customer site |
 | `/published/[websiteId]` | Admin session | Local published-snapshot preview, not a public domain |
+
+On the **public** runtime (port 3003 / future public Worker), `/login`,
+`/site`, `/published`, and other admin paths are **absent** (404). See
+[`docs/public-runtime.md`](public-runtime.md).
 
 Protecting `/site` and `/published` does not break Client Review because
 review uses `/review/[token]` and `/media/{id}` only. Future public websites
@@ -233,7 +265,10 @@ Do not put production values in git, `wrangler.jsonc` vars, or
 Missing auth configuration fails closed: login is unavailable and no session
 is accepted.
 
-## Commands that must not be used for M15/M16
+The public runtime does not read these values and must not fail to boot
+when they are absent.
+
+## Commands that must not be used for M15–M19
 
 - `wrangler deploy`
 - `wrangler d1 ... --remote`

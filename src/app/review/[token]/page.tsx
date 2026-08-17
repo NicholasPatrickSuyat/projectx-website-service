@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ClientReviewControls } from "@/components/website-review/ClientReviewControls";
 import { renderTemplate } from "@/lib/templates/render";
-import { getClientReviewByToken } from "@/lib/website-review/actions";
+import { getClientReviewByToken } from "@/lib/website-review/public-actions";
 import { isReviewToken } from "@/lib/website-review/token";
 
 export const dynamic = "force-dynamic";
