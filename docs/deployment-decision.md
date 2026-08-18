@@ -14,7 +14,8 @@ Approved production direction (**Option C**):
 
 - Public Client runtime: one Cloudflare Worker on **Workers Free** (initial target)
 - Private admin: remains local; do not deploy the admin application yet
-- One shared production D1 and one shared production R2 (when a later milestone is approved to create them)
+- One shared production D1 (`projectx-websites-production`, created in Milestone 24) and one shared production R2 (not created; R2 remains unapproved)
+- Production admin management is `npm run admin:production` on port 3004; `npm run dev` stays local-only
 - Many Client hostnames on one Worker (hostname routing implemented locally in Milestone 18; not deployed)
 - Keep `/media/{id}` for the first Client; no public R2 hostname yet
 - PBKDF2-HMAC-SHA256 stays at **600,000** iterations

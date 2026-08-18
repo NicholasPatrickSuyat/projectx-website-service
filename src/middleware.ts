@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ADMIN_SESSION_COOKIE, SESSION_SECRET_MIN_BYTES } from "@/lib/auth/constants";
+import {
+  getAdminSessionCookieName,
+  SESSION_SECRET_MIN_BYTES,
+} from "@/lib/auth/constants";
 import {
   isPublicHostPath,
   isPublicPath,
@@ -86,7 +89,7 @@ export async function middleware(request: NextRequest) {
     return continueRequest(request);
   }
 
-  const sessionCookie = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+  const sessionCookie = request.cookies.get(getAdminSessionCookieName())?.value;
   if (!sessionCookie) {
     return redirectToLogin(request);
   }

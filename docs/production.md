@@ -3,8 +3,10 @@
 This document describes the intended future production architecture for
 Project X Website Service.
 
-**No milestone through Milestone 22 deploys anything.** Do not create a
-remote Worker, D1, R2, domain, or paid resource from this repository.
+**Milestone 24 added a production D1 and a local production-admin
+command. It does not deploy a Worker, enable R2, or onboard a Client.**
+
+Production D1 details: [`docs/production-admin.md`](production-admin.md).
 
 Production deployment planning (Milestone 20):
 [`docs/production-infrastructure.md`](production-infrastructure.md).
@@ -16,15 +18,15 @@ Hosting/cost research: [`docs/deployment-decision.md`](deployment-decision.md).
 ## Current state
 
 - No remote Cloudflare Worker
-- No remote D1
+- Remote D1: `projectx-websites-production` (empty, migrations 0001–0011)
 - No remote R2
 - No Cloudflare Pages
 - No domains or DNS changes
 - No paid services enabled
-- Local development only
 - Current cost: $0
-- Admin application: `npm run dev` on port 3002
-- Public runtime target: `npm run dev:public` on port 3003 (Milestone 19)
+- Admin application: `npm run dev` on port 3002 (local D1 only)
+- Production admin: `npm run admin:production` on port 3004 (remote D1 only)
+- Public runtime target: `npm run dev:public` on port 3003
 
 Do not expose this internal admin application publicly with real Client data
 until a later deployment milestone is explicitly approved. Admin authentication
@@ -45,6 +47,14 @@ Admin (`npm run dev`):
 - Database: local Wrangler D1 emulator (`DB` binding, `--local` only)
 - Media: local filesystem under `storage/website-media/`
 - Website content continues to reference `/media/{id}` only
+
+Production admin (`npm run admin:production`):
+
+- Same Next.js admin app at [http://localhost:3004](http://localhost:3004)
+- Remote `projectx-websites-production` only (`wrangler.production-admin.jsonc`)
+- No migrate/seed/backfill/reset on startup
+- Persistent production-management banner
+- Media remains local filesystem (R2 is not approved)
 
 Public runtime (`npm run dev:public`):
 

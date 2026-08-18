@@ -89,8 +89,10 @@ for (const rel of [
   "docs/production.md",
   "docs/public-runtime.md",
   "docs/deployment-decision.md",
+  "docs/production-admin.md",
   "public-runtime/wrangler.jsonc",
   "wrangler.jsonc",
+  "wrangler.production-admin.jsonc",
 ]) {
   if (exists(rel)) {
     pass(`required file ${rel}`);
@@ -133,6 +135,39 @@ for (const rel of wranglerFiles) {
   }
 }
 
+const PRODUCTION_D1_ID = "db47d1af-bc9c-47f0-ad8a-1377971dbd24";
+const productionAdmin = read("wrangler.production-admin.jsonc");
+if (/"remote"\s*:\s*true/.test(productionAdmin) && productionAdmin.includes(PRODUCTION_D1_ID)) {
+  pass("wrangler.production-admin.jsonc binds remote production D1");
+} else {
+  fail(
+    "wrangler.production-admin.jsonc binds remote production D1",
+    "missing remote:true or production UUID",
+  );
+}
+if (/"workers_dev"\s*:\s*false/.test(productionAdmin)) {
+  pass("wrangler.production-admin.jsonc workers_dev is false");
+} else {
+  fail("wrangler.production-admin.jsonc workers_dev is false");
+}
+if (/r2_buckets/.test(productionAdmin)) {
+  fail("wrangler.production-admin.jsonc has no R2", "r2_buckets found");
+} else {
+  pass("wrangler.production-admin.jsonc has no R2");
+}
+if (/ADMIN_USERNAME|ADMIN_PASSWORD_HASH|AUTH_SESSION_SECRET/.test(productionAdmin)) {
+  fail("wrangler.production-admin.jsonc has no admin secrets", "admin secret name found");
+} else {
+  pass("wrangler.production-admin.jsonc has no admin secrets");
+}
+for (const rel of ["wrangler.jsonc", "public-runtime/wrangler.jsonc"]) {
+  if (read(rel).includes(PRODUCTION_D1_ID)) {
+    fail(`${rel} stays off production D1`, "production UUID found");
+  } else {
+    pass(`${rel} stays off production D1`);
+  }
+}
+
 const packageJson = JSON.parse(read("package.json"));
 const lockExists = exists("package-lock.json");
 if (lockExists) {
@@ -142,6 +177,38 @@ if (lockExists) {
 }
 if (packageJson.dependencies && packageJson.devDependencies) {
   pass("package.json has existing dependency blocks (no preflight mutation)");
+}
+if (packageJson.scripts?.["admin:production"] === "node scripts/admin-production.mjs") {
+  pass("admin:production is explicit and does not migrate/seed");
+} else {
+  fail("admin:production is explicit and does not migrate/seed");
+}
+const adminProductionScript = exists("scripts/admin-production.mjs")
+  ? read("scripts/admin-production.mjs")
+  : "";
+if (
+  adminProductionScript.includes('PXWS_ADMIN_PRODUCTION_COMMAND: "1"') &&
+  adminProductionScript.includes("wrangler.production-admin.jsonc") &&
+  !/\b(migrate|seed|backfill|reset)\b/.test(
+    adminProductionScript.replace(
+      "Startup will not migrate, seed, backfill, or reset.",
+      "",
+    ),
+  )
+) {
+  pass("admin:production startup is fail-closed and non-mutating");
+} else {
+  fail("admin:production startup is fail-closed and non-mutating");
+}
+if (
+  typeof packageJson.scripts?.dev === "string" &&
+  packageJson.scripts.dev.includes("db:migrate") &&
+  packageJson.scripts.dev.includes("--port 3002") &&
+  !packageJson.scripts.dev.includes("production")
+) {
+  pass("npm run dev remains local-only on port 3002");
+} else {
+  fail("npm run dev remains local-only on port 3002");
 }
 
 const publicDevVars = path.join(root, "public-runtime", ".dev.vars");
@@ -205,13 +272,18 @@ if (fs.existsSync(dryRunWorker)) {
   );
 }
 
-const forbiddenExact = [".dev.vars", "public-runtime/.dev.vars"];
+const forbiddenExact = [
+  ".dev.vars",
+  "public-runtime/.dev.vars",
+  ".dev.vars.production-admin",
+];
 const forbiddenPrefixes = [
   ".wrangler/",
   ".open-next/",
   "public-runtime/.open-next/",
   "public-runtime/.wrangler/",
   "storage/",
+  "backups/",
 ];
 try {
   const tracked = execFileSync("git", ["ls-files"], {

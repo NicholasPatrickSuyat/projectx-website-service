@@ -53,6 +53,10 @@ public-runtime/public/publication-runtime.css
 # env files (can opt-in for committing if needed)
 .env*
 .dev.vars
+.dev.vars.production-admin
+
+# Local D1 exports / operator backups. Never commit production dumps.
+/backups/
 
 # vercel
 .vercel

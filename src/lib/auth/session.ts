@@ -1,6 +1,9 @@
 import "server-only";
 import { cookies, headers } from "next/headers";
-import { ADMIN_SESSION_COOKIE, ADMIN_SESSION_TTL_SECONDS } from "@/lib/auth/constants";
+import {
+  ADMIN_SESSION_TTL_SECONDS,
+  getAdminSessionCookieName,
+} from "@/lib/auth/constants";
 import { getAdminAuthConfig } from "@/lib/auth/config";
 import {
   createAdminSessionValue,
@@ -38,7 +41,7 @@ export async function getVerifiedAdminSession(): Promise<AdminSession | null> {
 
   const store = await cookies();
   const parsed = await readAdminSessionValue(
-    store.get(ADMIN_SESSION_COOKIE)?.value,
+    store.get(getAdminSessionCookieName())?.value,
     config.sessionSecret,
   );
   if (!parsed) {
@@ -69,7 +72,7 @@ export async function persistAdminSession(username: string): Promise<boolean> {
     config.sessionSecret,
   );
   const store = await cookies();
-  store.set(ADMIN_SESSION_COOKIE, value, {
+  store.set(getAdminSessionCookieName(), value, {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
@@ -82,7 +85,7 @@ export async function persistAdminSession(username: string): Promise<boolean> {
 export async function clearAdminSession(): Promise<void> {
   await clearCurrentAdminSession();
   const store = await cookies();
-  store.set(ADMIN_SESSION_COOKIE, "", {
+  store.set(getAdminSessionCookieName(), "", {
     httpOnly: true,
     sameSite: "lax",
     path: "/",

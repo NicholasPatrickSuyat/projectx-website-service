@@ -1,4 +1,11 @@
 export const ADMIN_SESSION_COOKIE = "pxws_admin_session";
+export const PRODUCTION_ADMIN_SESSION_COOKIE = "pxws_production_admin_session";
+
+export function getAdminSessionCookieName(): string {
+  return process.env.PXWS_PRODUCTION_ADMIN === "1"
+    ? PRODUCTION_ADMIN_SESSION_COOKIE
+    : ADMIN_SESSION_COOKIE;
+}
 export const ADMIN_SESSION_TTL_SECONDS = 12 * 60 * 60;
 export const ADMIN_AUTH_ERROR = "You must be signed in to continue.";
 export const INVALID_CREDENTIALS_ERROR = "Those credentials are incorrect.";

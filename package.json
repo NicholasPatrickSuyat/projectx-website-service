@@ -14,6 +14,7 @@
     "test:public": "node scripts/smoke-public-runtime.mjs",
     "test:static-publication": "node --import ./scripts/publication-tsx-register.mjs scripts/smoke-static-publication.mjs && node --import ./scripts/publication-tsx-register.mjs scripts/smoke-publication-safety.mjs",
     "preflight:production": "node scripts/preflight-production.mjs",
+    "admin:production": "node scripts/admin-production.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit && tsc --noEmit -p public-runtime/tsconfig.json",

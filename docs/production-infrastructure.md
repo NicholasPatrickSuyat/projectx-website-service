@@ -409,20 +409,22 @@ Access. Tens of requests cannot meaningfully approach 100,000/day.
 
 ## 5. D1 production plan
 
-### 5.1 Initialization (Milestone 21+, not now)
+### 5.1 Initialization (Milestone 24)
+
+Created:
 
 ```bash
-# Create (do not run in Milestone 20)
 npx wrangler d1 create projectx-websites-production
 ```
 
-Then put the returned `database_id` only in a **production** Wrangler
-env that is not used by `npm run dev`.
+UUID `db47d1af-bc9c-47f0-ad8a-1377971dbd24` lives only in
+`wrangler.production-admin.jsonc`. Default `wrangler.jsonc` stays on the
+local placeholder with `remote: false`.
 
-Apply migrations **0001–0011** in filename order:
+Remote migrations:
 
 ```bash
-npx wrangler d1 migrations apply projectx-websites-production --remote
+npx wrangler d1 migrations apply projectx-websites-production --remote --config wrangler.production-admin.jsonc
 ```
 
 Local development must keep using:
@@ -655,31 +657,32 @@ data stores.
 | C. CLI-only onboarding | Wrangler SQL/R2 for one Client | Fragile, easy to err |
 | D. Deploy admin Worker | Puts admin on the Internet | Rejected (M17/M19) |
 
-### 9.2 Recommended: Option A
+### 9.2 Implemented: Option A (`npm run admin:production`)
 
-Future (not implemented in Milestone 20):
+See [`docs/production-admin.md`](production-admin.md).
 
 - `npm run dev` / `npm run db:migrate` stay **local-only** and must
   **never** connect to production D1 or R2
-- A future `npm run admin:production` would require:
-  - explicit production mode (`PXWS_PRODUCTION_ADMIN=1` or equivalent)
-  - an unmistakable UI warning/banner
-  - production resource identity verification (print D1/R2 names/IDs)
-  - a gitignored production env file (no IDs in git until filled later)
-  - **no** automatic migrations
-  - **no** test seed/reset operations
-  - backup required before migrations or destructive actions
-  - no accidental fallback from local to production
+- `npm run admin:production` requires:
+  - `PXWS_PRODUCTION_ADMIN=1`
+  - `wrangler.production-admin.jsonc` (`remote: true`, production UUID)
+  - OpenNext `remoteBindings: true` for this command only (so D1 is not emulated locally)
+  - gitignored `.dev.vars.production-admin`
+  - production-management banner on every page including login
+  - **no** automatic migrations, seed, backfill, or reset
+  - **no** R2
 - No `remote: true` in the default `wrangler.jsonc` files
+- Production admin fails closed if the remote D1 schema is missing
 
-Until that exists, **do not onboard a real Client**. The first CPU smoke
-test must not require the admin UI.
+Do **not** onboard a real Client until ChatGPT approves that step.
 
 ### 9.3 Safeguards already in place
 
 - `npm run db:migrate` uses `--local`
-- Both Wrangler files set `"remote": false`
-- Placeholder D1/R2 identifiers are not provisioned resources
+- Default `wrangler.jsonc` and `public-runtime/wrangler.jsonc` keep `"remote": false` and the placeholder D1 id
+- `wrangler.production-admin.jsonc` is the only file with `"remote": true` and the production D1 UUID
+- `npm run admin:production` is the only command that sets `PXWS_ADMIN_PRODUCTION_COMMAND=1`
+- Placeholder D1/R2 identifiers in the default configs are not provisioned resources
 - Public preview strips admin secrets
 
 ---
@@ -688,10 +691,10 @@ test must not require the admin UI.
 
 | Environment | D1 | Media | Command |
 |---|---|---|---|
-| Local admin | Local emulator | Filesystem | `npm run dev` |
+| Local admin | Local emulator | Filesystem | `npm run dev` (3002) |
+| Production admin-management | Remote `projectx-websites-production` | Filesystem (R2 not approved) | `npm run admin:production` (3004) |
 | Local public | Same local emulator | Filesystem / local R2 emulator | `npm run dev:public` / `preview:cloudflare:public` |
-| Production public | Remote `projectx-websites-production` | Remote `projectx-websites-media` | Milestone 21 deploy only |
-| Production admin-management | Same remote D1/R2 | Same | Future explicit command; **not `npm run dev`** |
+| Production public | Remote `projectx-websites-production` | Remote R2 later | Not deployed |
 
 ---
 
