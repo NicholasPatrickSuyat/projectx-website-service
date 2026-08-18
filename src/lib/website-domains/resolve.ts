@@ -8,7 +8,7 @@ import {
   parseRequestHostname,
 } from "@/lib/website-domains/hostname";
 import { getWebsiteDomainByHostname } from "@/lib/website-domains/repository";
-import { getLatestWebsitePublication } from "@/lib/website-publications/repository";
+import { getActiveWebsitePublication } from "@/lib/website-publications/repository";
 
 export type PublicHostWebsite = {
   hostname: string;
@@ -30,7 +30,7 @@ export const resolvePublishedWebsiteForHostname = cache(
       return null;
     }
 
-    const publication = await getLatestWebsitePublication(mapping.websiteId);
+    const publication = await getActiveWebsitePublication(mapping.websiteId);
     if (!publication) {
       return null;
     }

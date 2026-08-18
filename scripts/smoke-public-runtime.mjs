@@ -233,6 +233,7 @@ const adminPaths = [
   ["17. /settings → 404", "/settings"],
   ["18. /site/[id] → 404", "/site/11a1dcd6-96d8-4f05-a075-810322e0ba16"],
   ["19. /published/[id] → 404", "/published/11a1dcd6-96d8-4f05-a075-810322e0ba16"],
+  ["19b. /support-requests → 404", "/support-requests"],
 ];
 
 for (const [name, path] of adminPaths) {
@@ -285,6 +286,13 @@ const seoIndex = /index, follow|index,follow|content="index/i.test(cedar.body) |
 failures += assert(
   "public hostname SEO index/follow present or title published",
   cedar.status === 200 && /<title>/i.test(cedar.body) && !/Project X Website Service/i.test(cedar.body),
+);
+
+failures += assert(
+  "published host is stored HTML, not Next RSC",
+  cedar.status === 200 &&
+    !/self\.__next_f/.test(cedar.body) &&
+    /publication-runtime\.css/.test(cedar.body),
 );
 
 console.log("\nWALL-CLOCK (local, NOT Cloudflare production CPU):");

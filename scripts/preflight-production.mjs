@@ -18,6 +18,7 @@ const EXPECTED_MIGRATIONS = [
   "0008_create_website_publications.sql",
   "0009_create_admin_session.sql",
   "0010_create_website_domains.sql",
+  "0011_static_publication_html.sql",
 ];
 
 let failures = 0;
@@ -72,17 +73,18 @@ const migrationFiles = fs
   .filter((name) => name.endsWith(".sql"))
   .sort();
 if (EXPECTED_MIGRATIONS.every((name) => migrationFiles.includes(name))) {
-  pass("migrations 0001–0010 present");
+  pass("migrations 0001–0011 present");
 } else {
-  fail("migrations 0001–0010 present", migrationFiles.join(", "));
+  fail("migrations 0001–0011 present", migrationFiles.join(", "));
 }
-if (migrationFiles.some((name) => name.startsWith("0011"))) {
-  fail("no migration 0011", "0011 file found");
+if (migrationFiles.some((name) => name.startsWith("0012"))) {
+  fail("no migration 0012", "0012 file found");
 } else {
-  pass("no migration 0011");
+  pass("no migration 0012");
 }
 
 for (const rel of [
+  "docs/static-publication.md",
   "docs/production-infrastructure.md",
   "docs/production.md",
   "docs/public-runtime.md",
@@ -168,13 +170,20 @@ if (fs.existsSync(publicDevVars)) {
 }
 
 const workerPath = path.join(root, "public-runtime", ".open-next", "worker.js");
-if (fs.existsSync(workerPath)) {
-  const raw = fs.readFileSync(workerPath);
+const dryRunWorker = path.join(
+  root,
+  "public-runtime",
+  ".open-next",
+  "wrangler-dry-run",
+  "worker.js",
+);
+if (fs.existsSync(dryRunWorker)) {
+  const raw = fs.readFileSync(dryRunWorker);
   const gzip = gzipSync(raw);
   const gzipKiB = gzip.length / 1024;
   const gzipMiB = gzip.length / (1024 * 1024);
   pass(
-    "public Worker artifact gzip size (local file, not a deploy)",
+    "public Worker wrangler dry-run gzip (local, not a deploy)",
     `${gzipKiB.toFixed(2)} KiB / ${gzipMiB.toFixed(3)} MiB gzip`,
   );
   if (gzip.length > 3 * 1024 * 1024) {
@@ -182,6 +191,13 @@ if (fs.existsSync(workerPath)) {
   } else {
     pass("gzip under documented Free 3 MB");
   }
+} else if (fs.existsSync(workerPath)) {
+  const raw = fs.readFileSync(workerPath);
+  const gzip = gzipSync(raw);
+  pass(
+    "public OpenNext worker.js entry (local file, not a deploy)",
+    `${(gzip.length / 1024).toFixed(2)} KiB gzip; wrangler dry-run bundle not present`,
+  );
 } else {
   pass(
     "public Worker artifact optional",

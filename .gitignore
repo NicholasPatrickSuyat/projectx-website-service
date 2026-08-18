@@ -42,6 +42,10 @@ public-runtime/.wrangler/
 # Copied into the public runtime before local/public builds
 public-runtime/public/templates/
 public-runtime/public/_headers
+public-runtime/public/publication-runtime.css
+
+# Generated publication stylesheet (built from src/styles/publication-runtime.css)
+/public/publication-runtime.css
 
 # local website media uploads
 /storage/

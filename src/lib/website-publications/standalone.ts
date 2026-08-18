@@ -1,7 +1,7 @@
 import { getTemplate } from "@/lib/templates/registry";
 import type { TemplateId, WebsiteContent } from "@/lib/templates/types";
 import { parseWebsiteContentJson } from "@/lib/websites/content";
-import { getLatestWebsitePublication } from "@/lib/website-publications/repository";
+import { getActiveWebsitePublication } from "@/lib/website-publications/repository";
 import { isWebsiteId } from "@/lib/websites/validation";
 
 export type StandalonePublishedWebsite = {
@@ -19,7 +19,7 @@ export async function getStandalonePublishedWebsite(
     return null;
   }
 
-  const publication = await getLatestWebsitePublication(websiteId);
+  const publication = await getActiveWebsitePublication(websiteId);
   if (!publication) {
     return null;
   }

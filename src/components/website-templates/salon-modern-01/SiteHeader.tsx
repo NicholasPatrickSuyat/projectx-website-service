@@ -98,33 +98,32 @@ export function SiteHeader({ content }: { content: SalonWebsiteContent }) {
         </div>
       </div>
 
-      {open ? (
-        <nav
-          id="salon-mobile-nav"
-          className="border-t border-[var(--sa-line)] px-4 py-3 xl:hidden"
-          aria-label="Mobile"
-        >
-          <div className="flex flex-col">
-            {navigation.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2.5 text-sm font-medium"
-              >
-                {item.label}
-              </a>
-            ))}
+      <nav
+        id="salon-mobile-nav"
+        className="border-t border-[var(--sa-line)] px-4 py-3 xl:hidden"
+        aria-label="Mobile"
+        hidden={!open}
+      >
+        <div className="flex flex-col">
+          {navigation.map((item) => (
             <a
-              href={book.href}
+              key={item.href}
+              href={item.href}
               onClick={() => setOpen(false)}
-              className="mt-2 rounded-md bg-[var(--sa-primary)] px-4 py-2.5 text-center text-sm font-medium text-[var(--sa-surface)]"
+              className="rounded-md px-3 py-2.5 text-sm font-medium"
             >
-              {book.label}
+              {item.label}
             </a>
-          </div>
-        </nav>
-      ) : null}
+          ))}
+          <a
+            href={book.href}
+            onClick={() => setOpen(false)}
+            className="mt-2 rounded-md bg-[var(--sa-primary)] px-4 py-2.5 text-center text-sm font-medium text-[var(--sa-surface)]"
+          >
+            {book.label}
+          </a>
+        </div>
+      </nav>
     </header>
   );
 }

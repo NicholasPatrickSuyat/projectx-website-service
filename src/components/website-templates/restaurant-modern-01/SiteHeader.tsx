@@ -94,33 +94,32 @@ export function SiteHeader({ content }: { content: RestaurantWebsiteContent }) {
         </div>
       </div>
 
-      {open ? (
-        <nav
-          id="restaurant-mobile-nav"
-          className="border-t border-[var(--rm-primary)]/8 px-4 py-3 lg:hidden"
-          aria-label="Mobile"
-        >
-          <div className="flex flex-col gap-1">
-            {navigation.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--rm-ink)]"
-              >
-                {item.label}
-              </a>
-            ))}
+      <nav
+        id="restaurant-mobile-nav"
+        className="border-t border-[var(--rm-primary)]/8 px-4 py-3 lg:hidden"
+        aria-label="Mobile"
+        hidden={!open}
+      >
+        <div className="flex flex-col gap-1">
+          {navigation.map((item) => (
             <a
-              href={reserve.href}
+              key={item.href}
+              href={item.href}
               onClick={() => setOpen(false)}
-              className="mt-2 rounded-full bg-[var(--rm-accent)] px-4 py-2.5 text-center text-sm font-semibold text-white"
+              className="rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--rm-ink)]"
             >
-              {reserve.label}
+              {item.label}
             </a>
-          </div>
-        </nav>
-      ) : null}
+          ))}
+          <a
+            href={reserve.href}
+            onClick={() => setOpen(false)}
+            className="mt-2 rounded-full bg-[var(--rm-accent)] px-4 py-2.5 text-center text-sm font-semibold text-white"
+          >
+            {reserve.label}
+          </a>
+        </div>
+      </nav>
     </header>
   );
 }

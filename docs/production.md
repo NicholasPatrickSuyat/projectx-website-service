@@ -3,12 +3,14 @@
 This document describes the intended future production architecture for
 Project X Website Service.
 
-**No milestone through Milestone 20 deploys anything.** Do not create a
+**No milestone through Milestone 22 deploys anything.** Do not create a
 remote Worker, D1, R2, domain, or paid resource from this repository.
 
 Production deployment planning (Milestone 20):
 [`docs/production-infrastructure.md`](production-infrastructure.md).
 Public vs private split details: [`docs/public-runtime.md`](public-runtime.md).
+Static publication runtime (Milestone 22):
+[`docs/static-publication.md`](static-publication.md).
 Hosting/cost research: [`docs/deployment-decision.md`](deployment-decision.md).
 
 ## Current state

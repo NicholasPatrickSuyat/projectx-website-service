@@ -6,6 +6,8 @@ domain, DNS record, or paid Cloudflare service.
 
 Production infrastructure planning:
 [`docs/production-infrastructure.md`](production-infrastructure.md).
+Static publication runtime (Milestone 22):
+[`docs/static-publication.md`](static-publication.md).
 
 ## Why this exists
 
@@ -28,8 +30,10 @@ One repository. Two Next.js compilations.
 **Shared (imported by both apps):**
 
 - template renderers (`src/components/website-templates`, `src/lib/templates`)
+  — used by Client Review and admin Publish generation, **not** by the
+  normal published hostname handler
 - Website content parsers
-- publication resolver
+- static publication serving (`serve-public-html.ts`)
 - hostname resolver (`website_domains`)
 - public media authorization (`src/lib/website-media/authorize-public.ts`)
 - Client Review token/feedback/approval (`src/lib/website-review/public-actions.ts`)
@@ -42,9 +46,11 @@ One repository. Two Next.js compilations.
 
 The public app has only:
 
-- `/host/[[...slug]]` (hostname published sites)
-- `/review/[token]`
+- `/host/[[...slug]]` Route Handler (stored publication HTML, no
+  `renderTemplate()`)
+- `/review/[token]` (dynamic draft review; still uses `renderTemplate()`)
 - `/media/[mediaId]` GET
+- `/publication-runtime.css`
 - bundled template assets under `/templates/{id}/...`
 - public 404/error pages
 
@@ -61,14 +67,15 @@ Worker.
 
 | Request | Behavior |
 |---|---|
-| `Host: cedar.localhost` `/` | Latest Cedar publication |
-| `Host: copper.localhost` `/` | Latest Copper publication |
-| `Host: linden.localhost` `/` | Latest Linden publication |
+| `Host: cedar.localhost` `/` | Cedar **active** publication HTML |
+| `Host: copper.localhost` `/` | Copper **active** publication HTML |
+| `Host: linden.localhost` `/` | Linden **active** publication HTML |
 | Unknown or malformed hostname `/` | Public 404, fail closed |
 | `/review/{token}` | Saved-draft Client Review (valid token) or 404 |
-| `/media/{id}` | Same Milestone 18 authorization, no public R2 URL |
+| `/media/{id}` | Same Milestone 18 authorization against the **active** publication (or review draft), no public R2 URL |
+| `/publication-runtime.css` | Shared generated template stylesheet |
 | `/templates/{service\|restaurant\|salon}-modern-01/*` | Bundled public assets |
-| `/login`, `/clients`, `/websites`, `/templates` admin, `/settings`, `/site/...`, `/published/...` | 404 / unavailable (not admin login) |
+| `/login`, `/clients`, `/websites`, `/templates` admin, `/settings`, `/support-requests`, `/site/...`, `/published/...` | 404 / unavailable (not admin login) |
 
 Middleware never requires an admin cookie. It never runs PBKDF2.
 
@@ -172,7 +179,7 @@ A later approved milestone would still need to:
    review
 4. Create/bind production D1 (empty) and, only if checkout risk is
    accepted, private R2
-5. Apply migrations 0001–0010 remotely to empty production D1
+5. Apply migrations 0001–0011 remotely to empty production D1
 6. Configure Custom Domains / routes (not `workers.dev` for Client URLs)
 7. Set production secrets **without** requiring admin credentials on the
    public Worker (none required today)

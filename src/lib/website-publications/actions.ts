@@ -5,7 +5,9 @@ import { getAdminActionError } from "@/lib/auth/guard";
 import { cloneContent } from "@/lib/templates/editor";
 import type { WebsiteContent } from "@/lib/templates/types";
 import { canPublishWebsite } from "@/lib/domain";
+import { generatePublicationPublicHtmlViaNode } from "@/lib/website-publications/generate-via-node";
 import {
+  activateWebsitePublication,
   getWebsitePublicationForWebsite,
   listWebsitePublications,
   publishWebsite,
@@ -43,6 +45,10 @@ export type PublishWebsiteResult =
       publicationNumber: number;
       publishedAt: string;
     }
+  | { ok: false; error: string };
+
+export type ActivateWebsitePublicationResult =
+  | { ok: true; publicationNumber: number }
   | { ok: false; error: string };
 
 function revalidatePublishPaths(
@@ -121,6 +127,7 @@ export async function getWebsitePublicationAction(
       templateId: publication.templateId,
       publishedAt: publication.publishedAt,
       createdAt: publication.createdAt,
+      isActive: publication.isActive,
     },
     content: cloneContent(parsed.content),
   };
@@ -163,9 +170,25 @@ export async function publishWebsiteAction(
     };
   }
 
+  const publicHtml = generatePublicationPublicHtmlViaNode(
+    existing.templateId,
+    existing.contentJson,
+  );
+  if (!publicHtml) {
+    return {
+      ok: false,
+      error:
+        "The saved website content could not be rendered into a public publication. Fix and Save Draft first.",
+    };
+  }
+
   let published;
   try {
-    published = await publishWebsite(websiteId);
+    published = await publishWebsite(websiteId, {
+      publicHtml,
+      contentJson: existing.contentJson,
+      templateId: existing.templateId,
+    });
   } catch (error) {
     if (error instanceof Error && error.message === "WEBSITE_NOT_READY_TO_PUBLISH") {
       return {
@@ -178,6 +201,13 @@ export async function publishWebsiteAction(
       return {
         ok: false,
         error: "Could not create the publication snapshot. Try Publish again.",
+      };
+    }
+    if (error instanceof Error && error.message === "WEBSITE_PUBLICATION_HTML_FAILED") {
+      return {
+        ok: false,
+        error:
+          "The saved website content could not be rendered into a public publication. Fix and Save Draft first.",
       };
     }
     throw error;
@@ -201,4 +231,58 @@ export async function publishWebsiteAction(
     publicationNumber: published.publication.publicationNumber,
     publishedAt: published.publication.publishedAt,
   };
+}
+
+export async function activateWebsitePublicationAction(
+  websiteId: string,
+  publicationId: string,
+): Promise<ActivateWebsitePublicationResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
+  if (!isWebsiteId(websiteId) || !isWebsiteId(publicationId)) {
+    return { ok: false, error: "Publication ID is invalid." };
+  }
+
+  const existing = await getWebsiteById(websiteId);
+  if (!existing) {
+    return { ok: false, error: "That website could not be found." };
+  }
+
+  let publication;
+  try {
+    publication = await activateWebsitePublication(websiteId, publicationId);
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "WEBSITE_PUBLICATION_HTML_MISSING"
+    ) {
+      return {
+        ok: false,
+        error:
+          "That publication has no generated public HTML and cannot be made live.",
+      };
+    }
+    if (
+      error instanceof Error &&
+      error.message === "WEBSITE_PUBLICATION_ACTIVATE_FAILED"
+    ) {
+      return {
+        ok: false,
+        error: "That publication could not be made live.",
+      };
+    }
+    throw error;
+  }
+
+  if (!publication) {
+    return { ok: false, error: "That publication could not be found." };
+  }
+
+  const session = await getReviewSessionByWebsiteId(websiteId);
+  revalidatePublishPaths(websiteId, existing.clientId, session?.token);
+
+  return { ok: true, publicationNumber: publication.publicationNumber };
 }

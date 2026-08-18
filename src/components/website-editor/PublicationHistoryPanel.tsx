@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  activateWebsitePublicationAction,
   getWebsitePublicationAction,
   listWebsitePublicationsAction,
 } from "@/lib/website-publications/actions";
@@ -79,6 +80,39 @@ export function PublicationHistoryPanel({
     onView(result.publication, result.content);
   }
 
+  async function makeLive(publication: WebsitePublicationSummary) {
+    if (publication.isActive) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Make Publication ${publication.publicationNumber} the live public site?\n\nThis does not change the draft. It switches the public hostname to this frozen snapshot.`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setBusyId(publication.id);
+    setError(null);
+    const result = await activateWebsitePublicationAction(
+      websiteId,
+      publication.id,
+    );
+    if (!result.ok) {
+      setBusyId(null);
+      setError(result.error);
+      return;
+    }
+
+    const list = await listWebsitePublicationsAction(websiteId);
+    setBusyId(null);
+    if (!list.ok) {
+      setError(list.error);
+      return;
+    }
+    setPublications(list.publications);
+  }
+
   if (!open) {
     return null;
   }
@@ -106,8 +140,8 @@ export function PublicationHistoryPanel({
               Publication History
             </h2>
             <p className="mt-1 text-sm leading-5 text-muted">
-              Intentionally published snapshots. These are separate from Version
-              History. Public deployment is not configured yet.
+              Frozen publication snapshots. Make live restores an older
+              snapshot without copying the current draft.
             </p>
           </div>
           <button
@@ -132,8 +166,8 @@ export function PublicationHistoryPanel({
                 No publications yet.
               </p>
               <p className="mt-2 text-sm leading-6 text-muted">
-                Publish creates an internal frozen snapshot. It does not deploy
-                this website to the internet.
+                Publish creates an immutable snapshot and generated public HTML.
+                Draft edits do not change the live site until you Publish again.
               </p>
             </div>
           ) : (
@@ -148,6 +182,11 @@ export function PublicationHistoryPanel({
                     <div>
                       <p className="text-sm font-semibold text-foreground">
                         Publication {publication.publicationNumber}
+                        {publication.isActive ? (
+                          <span className="ml-2 text-xs font-medium text-accent">
+                            Live
+                          </span>
+                        ) : null}
                       </p>
                       <p className="mt-1 text-xs text-muted">
                         {formatPublicationPublishedAt(publication.publishedAt)}
@@ -164,16 +203,26 @@ export function PublicationHistoryPanel({
                     >
                       View
                     </button>
-                    {publications[0]?.id === publication.id ? (
+                    {publication.isActive ? (
                       <a
                         href={getPublishedWebsitePreviewPath(websiteId)}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-background"
                       >
-                        Open latest
+                        Open live
                       </a>
-                    ) : null}
+                    ) : (
+                      <button
+                        type="button"
+                        data-action="make-live-publication"
+                        onClick={() => void makeLive(publication)}
+                        disabled={busyId === publication.id}
+                        className="inline-flex items-center rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-background disabled:opacity-60"
+                      >
+                        Make live
+                      </button>
+                    )}
                   </div>
                 </li>
               ))}

@@ -1,0 +1,21 @@
+@import "tailwindcss";
+@source "../components/website-templates";
+
+@import "../components/website-templates/service-modern-01/service-modern-01.css";
+@import "../components/website-templates/restaurant-modern-01/restaurant-modern-01.css";
+@import "../components/website-templates/salon-modern-01/salon-modern-01.css";
+
+.sm01 {
+  --font-sm-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sm-display: "Fraunces", Georgia, "Times New Roman", serif;
+}
+
+.rm01 {
+  --font-rm-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-rm-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+}
+
+.sa01 {
+  --font-sa-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-sa-display: "Fraunces", Georgia, "Times New Roman", serif;
+}

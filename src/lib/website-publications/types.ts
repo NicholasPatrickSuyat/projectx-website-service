@@ -7,6 +7,7 @@ export type WebsitePublicationSummary = {
   templateId: TemplateId;
   publishedAt: string;
   createdAt: string;
+  isActive: boolean;
 };
 
 export type WebsitePublication = WebsitePublicationSummary & {
@@ -26,7 +27,9 @@ export type WebsitePublicationRow = {
 export type WebsitePublicationSummaryRow = Omit<
   WebsitePublicationRow,
   "content_json"
->;
+> & {
+  is_active?: number | boolean | null;
+};
 
 export function mapWebsitePublicationSummaryRow(
   row: WebsitePublicationSummaryRow,
@@ -38,6 +41,7 @@ export function mapWebsitePublicationSummaryRow(
     templateId: row.template_id as TemplateId,
     publishedAt: row.published_at,
     createdAt: row.created_at,
+    isActive: Boolean(row.is_active),
   };
 }
 

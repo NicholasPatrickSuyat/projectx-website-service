@@ -82,26 +82,25 @@ export function SiteHeader({ content }: { content: ServiceWebsiteContent }) {
         </div>
       </div>
 
-      {open ? (
-        <nav
-          id="mobile-nav"
-          className="border-t border-black/5 px-4 py-3 lg:hidden"
-          aria-label="Mobile"
-        >
-          <div className="flex flex-col gap-1">
-            {navigation.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--sm-ink)]"
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-        </nav>
-      ) : null}
+      <nav
+        id="mobile-nav"
+        className="border-t border-black/5 px-4 py-3 lg:hidden"
+        aria-label="Mobile"
+        hidden={!open}
+      >
+        <div className="flex flex-col gap-1">
+          {navigation.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className="rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--sm-ink)]"
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </nav>
     </header>
   );
 }

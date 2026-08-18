@@ -46,9 +46,14 @@ export function isPublicHostPath(pathname: string): boolean {
   return pathname === "/host" || pathname.startsWith("/host/");
 }
 
+export function isPublicationRuntimeCssPath(pathname: string): boolean {
+  return pathname === "/publication-runtime.css";
+}
+
 export function isSharedPublicResourcePath(pathname: string): boolean {
   return (
     isBundledTemplateAssetPath(pathname) ||
+    isPublicationRuntimeCssPath(pathname) ||
     pathname.startsWith("/review/") ||
     pathname.startsWith("/media/") ||
     pathname.startsWith("/_next/") ||
@@ -69,7 +74,8 @@ export function isPublicPath(pathname: string): boolean {
     pathname.startsWith("/review/") ||
     pathname.startsWith("/media/") ||
     pathname.startsWith("/_next/") ||
-    pathname === "/favicon.ico"
+    pathname === "/favicon.ico" ||
+    isPublicationRuntimeCssPath(pathname)
   );
 }
 

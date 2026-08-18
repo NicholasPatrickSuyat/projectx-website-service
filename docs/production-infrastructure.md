@@ -419,7 +419,7 @@ npx wrangler d1 create projectx-websites-production
 Then put the returned `database_id` only in a **production** Wrangler
 env that is not used by `npm run dev`.
 
-Apply migrations **0001–0010** in filename order:
+Apply migrations **0001–0011** in filename order:
 
 ```bash
 npx wrangler d1 migrations apply projectx-websites-production --remote
@@ -450,8 +450,9 @@ npx wrangler d1 execute projectx-websites-production --remote --command "SELECT 
 npx wrangler d1 migrations list projectx-websites-production --remote
 ```
 
-Expected application tables from 0001–0010 include clients, websites,
-versions, media, templates-related constraints, review, publications,
+Expected application tables from 0001–0011 include clients, websites,
+versions, media, templates-related constraints, review, publications
+(including `public_html`), `websites.active_publication_id`,
 admin session, website_domains, plus `d1_migrations`.
 
 ### 5.4 Backup and restore
@@ -592,8 +593,8 @@ stopping. Workers Free HTML/media requests **stop** at 100k/day (Error
 
 ### 8.1 Architecture
 
-Already implemented locally (Milestone 18): `Host` → `website_domains` →
-Website → latest publication.
+Already implemented locally (Milestone 18, updated in Milestone 22):
+`Host` → `website_domains` → Website → **active** publication HTML.
 
 Production: attach each live hostname as a **Workers Custom Domain** on
 `projectx-websites-public`. The Worker already reads the `Host` header.
@@ -726,9 +727,12 @@ git, not `vars`). Do not create any in this milestone.
 or **with** a Worker that matches that schema. Worker rollback after a
 breaking migration can take production down until D1 is restored.
 
-Migrations **0001–0010** are frozen. Do not add **0011** in this
-milestone. First production apply is a one-time empty-database init, not
-a rollback problem yet.
+Migrations **0001–0010** remain unchanged. Milestone 22 added **0011**
+(`public_html` + `active_publication_id`) locally only. Do not add
+**0012** until a later milestone explicitly requires it. First
+production apply is still a one-time empty-database init, not a
+rollback problem yet. Never use `--remote` from this repository until
+an approved deployment milestone.
 
 ---
 

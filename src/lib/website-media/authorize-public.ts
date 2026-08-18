@@ -7,7 +7,7 @@ import {
 import { getWebsiteDomainByHostname } from "@/lib/website-domains/repository";
 import { contentReferencesMedia } from "@/lib/website-media/references";
 import { getWebsiteMediaById } from "@/lib/website-media/repository";
-import { getLatestWebsitePublication } from "@/lib/website-publications/repository";
+import { getActiveWebsitePublication } from "@/lib/website-publications/repository";
 import { REVIEW_MEDIA_COOKIE } from "@/lib/website-review/types";
 import { isReviewToken } from "@/lib/website-review/token";
 import { getReviewSessionByToken } from "@/lib/website-review/repository";
@@ -143,7 +143,7 @@ export async function authorizePublicHostMedia(
     return false;
   }
 
-  const publication = await getLatestWebsitePublication(mapping.websiteId);
+  const publication = await getActiveWebsitePublication(mapping.websiteId);
   if (publication) {
     const publishedAllowed = await mediaAllowedForWebsiteContent(
       mediaId,
