@@ -55,8 +55,10 @@ What remains dynamic:
 
 - Hostname → domain → active publication lookup (D1 I/O)
 - `/media/{id}` authorization
-- Client Review (`/review/{token}`) still calls `renderTemplate()`
-- Admin editor, previews, Publish generation
+- Client Review token lookup + stored `review_html` substitution
+  (generation is admin/Save Draft, not per public GET — see
+  [`docs/client-review-runtime.md`](client-review-runtime.md))
+- Admin editor, previews, Publish generation, review HTML generation
 
 ## Old vs new request path
 
@@ -81,9 +83,9 @@ Evidence the expensive SSR no longer runs per published request:
 - HTML is generated only in admin Publish / local backfill
   (`render-public-html.tsx`)
 
-Client Review still imports `renderTemplate`. The public Worker bundle
-may still contain template components for that path. The **hostname
-handler** does not execute them.
+Client Review GET no longer imports `renderTemplate`. The public Worker
+must not execute template SSR for `/review/{token}`. See
+[`docs/client-review-runtime.md`](client-review-runtime.md).
 
 ## Publication model
 
@@ -217,9 +219,15 @@ live. That is intentional: public media follows the live snapshot.
 
 ## Client Review
 
-Remains dynamic on purpose. Valid token → saved draft preview, feedback,
-approval, review-scoped media. Invalid token → 404. No admin login.
-Never another Website.
+Uses stored saved-draft HTML, not publication snapshots.
+
+- Invalid / malformed token → fast validation → generic 404 (no templates)
+- Well-formed nonexistent / revoked token → D1 lookup → generic 404
+- Valid token → `websites.review_html` → stored HTML Response
+- Save Draft regenerates `review_html`; Publish stays independent
+- No admin login. Never another Website. `noindex, nofollow`.
+
+See [`docs/client-review-runtime.md`](client-review-runtime.md).
 
 ## Admin
 
@@ -233,7 +241,7 @@ Support Requests remain.
 Unchanged from Milestone 20/21 planning, still **not provisioned**:
 
 - One public Worker later (not now)
-- One shared D1 later (not now) with migrations 0001–0011
+- One shared D1 (`projectx-websites-production`) with migrations 0001–0012
 - One shared R2 later only if checkout risk is accepted (not now)
 - Custom Domains later
 - Cost target $0 / Workers Free
@@ -264,5 +272,6 @@ npm run db:backfill-publication-html
 npm run test:static-publication
 ```
 
-`db:migrate` applies 0011 locally (SQL only). Backfill is a separate
-local Node command. Never use `--remote`.
+`db:migrate` applies 0011 and 0012 locally (SQL only). Publication and
+review HTML backfill are separate local Node commands. Never use
+`--remote`.

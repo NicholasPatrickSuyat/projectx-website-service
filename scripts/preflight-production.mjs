@@ -19,6 +19,7 @@ const EXPECTED_MIGRATIONS = [
   "0009_create_admin_session.sql",
   "0010_create_website_domains.sql",
   "0011_static_publication_html.sql",
+  "0012_review_html.sql",
 ];
 
 let failures = 0;
@@ -73,18 +74,19 @@ const migrationFiles = fs
   .filter((name) => name.endsWith(".sql"))
   .sort();
 if (EXPECTED_MIGRATIONS.every((name) => migrationFiles.includes(name))) {
-  pass("migrations 0001–0011 present");
+  pass("migrations 0001–0012 present");
 } else {
-  fail("migrations 0001–0011 present", migrationFiles.join(", "));
+  fail("migrations 0001–0012 present", migrationFiles.join(", "));
 }
-if (migrationFiles.some((name) => name.startsWith("0012"))) {
-  fail("no migration 0012", "0012 file found");
+if (migrationFiles.some((name) => name.startsWith("0013"))) {
+  fail("no migration 0013", "0013 file found");
 } else {
-  pass("no migration 0012");
+  pass("no migration 0013");
 }
 
 for (const rel of [
   "docs/static-publication.md",
+  "docs/client-review-runtime.md",
   "docs/production-infrastructure.md",
   "docs/production.md",
   "docs/public-runtime.md",

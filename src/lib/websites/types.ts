@@ -21,6 +21,7 @@ export type WebsiteCreateInput = {
   templateId: TemplateId;
   name: string;
   contentJson: string;
+  reviewHtml: string;
 };
 
 export type WebsiteRow = {

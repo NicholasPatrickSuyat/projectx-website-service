@@ -10,7 +10,7 @@ Client launch.
 | Name | `projectx-websites-production` |
 | UUID | `db47d1af-bc9c-47f0-ad8a-1377971dbd24` |
 | Plan | Workers Free D1 |
-| Migrations | `0001`–`0011` applied remotely |
+| Migrations | `0001`–`0012` applied remotely. `0012` adds `websites.review_html TEXT NOT NULL DEFAULT ''`. |
 | Seed data | **None.** Production starts empty. |
 
 The UUID is a resource identifier, not a secret. It belongs only in

@@ -44,8 +44,12 @@ Public OpenNext artifact gzip size (Milestone 19 / 25, local dry-run):
 
 The **published Website** path on Workers Free is **PASS** (Milestone 25:
 Host → production D1 → stored `public_html`, n=60, p50 4 ms, max 9 ms,
-0/60 > 10 ms). Client Review CPU is **not approved**. Local workerd
-wall-clock is not Cloudflare production CPU accounting.
+0/60 > 10 ms). Client Review on stored `review_html` is **approved** for
+the initial Workers Free workflow (Milestone 26: valid n=20, p50 5 ms,
+max 9 ms, 0/20 > 10 ms). One cold-isolate malformed request recorded
+148 ms CPU with `outcome: ok` and no Error 1102; do not claim every
+invocation always stays below 10 ms. Local workerd wall-clock is not
+Cloudflare production CPU accounting.
 
 ---
 
@@ -243,10 +247,13 @@ Measured production CPU (Workers Logs `cpuTime`, milliseconds):
 | 21 | Dynamic SSR | FAIL — p50 ~13 ms, 65/81 > 10 ms |
 | 23 | Stored HTML, no production D1 | PASS — n=80, p50 3 ms, max 9 ms, 0/80 > 10 ms |
 | 25 | Stored HTML + production D1 | PASS — publication n=60, p50 4 ms, max 9 ms, 0/60 > 10 ms, Error 1102=0 |
+| 26 | Stored draft `review_html` | PASS for initial Client Review — valid n=20, p50 5 ms, max 9 ms, 0/20 > 10 ms, Error 1102=0 |
 
-Client Review is **not** in that PASS. One Milestone 25 invalid-token
-request recorded 72 ms CPU (`outcome: ok`). Validate the real review
-path before first Client use.
+Client Review is **approved** for the initial Workers Free workflow.
+Milestone 25 invalid-token SSR recorded 72 ms. Milestone 26 warm invalid
+paths were ≤10 ms. One cold-isolate malformed request recorded 148 ms
+CPU (`outcome: ok`, Error 1102=0). Do not claim every invocation always
+stays below 10 ms. Do not enable Workers Paid for this observation.
 
 ### 2.8 Billing alerts and caps
 
@@ -469,10 +476,11 @@ npx wrangler d1 execute projectx-websites-production --remote --command "SELECT 
 npx wrangler d1 migrations list projectx-websites-production --remote
 ```
 
-Expected application tables from 0001–0011 include clients, websites,
+Expected application tables from 0001–0012 include clients, websites,
 versions, media, templates-related constraints, review, publications
 (including `public_html`), `websites.active_publication_id`,
-admin session, website_domains, plus `d1_migrations`.
+`websites.review_html`, admin session, website_domains, plus
+`d1_migrations`.
 
 ### 5.4 Backup and restore
 
@@ -752,12 +760,11 @@ git, not `vars`). Do not create any in this milestone.
 or **with** a Worker that matches that schema. Worker rollback after a
 breaking migration can take production down until D1 is restored.
 
-Migrations **0001–0010** remain unchanged. Milestone 22 added **0011**
-(`public_html` + `active_publication_id`) locally only. Do not add
-**0012** until a later milestone explicitly requires it. First
-production apply is still a one-time empty-database init, not a
-rollback problem yet. Never use `--remote` from this repository until
-an approved deployment milestone.
+Migrations **0001–0011** remain unchanged. Milestone 22 added **0011**
+(`public_html` + `active_publication_id`). Milestone 26 added **0012**
+(`websites.review_html TEXT NOT NULL DEFAULT ''`). Production D1 has
+**0001–0012**. Never use `--remote` from this repository until an
+approved deployment milestone.
 
 ---
 

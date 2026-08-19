@@ -23,6 +23,7 @@ const CEDAR_UNREFERENCED_MEDIA = "97852466-8e79-4ccd-bc27-f44ce213a200";
 const COPPER_MEDIA = "ff6e9372-408e-4cc1-807d-cdbc9c72ad13";
 const LINDEN_MEDIA = "23358428-5d8d-463d-bd9c-32f103fec309";
 const INVALID_REVIEW_TOKEN = "a".repeat(64);
+const MALFORMED_REVIEW_TOKEN = "not-a-valid-token";
 const SWITCH_MARKER = `PXWS-M22-SWITCH-${randomUUID()}`;
 
 function curl(args) {
@@ -161,6 +162,20 @@ function readServeSource() {
   );
 }
 
+function readReviewRouteSource() {
+  return readFileSync(
+    path.join(root, "public-runtime", "src", "app", "review", "[token]", "route.ts"),
+    "utf8",
+  );
+}
+
+function readReviewServeSource() {
+  return readFileSync(
+    path.join(root, "src", "lib", "website-review", "serve-review-html.ts"),
+    "utf8",
+  );
+}
+
 waitForPublic();
 
 const cedarReview = firstRow(
@@ -174,6 +189,8 @@ let failures = 0;
 
 const hostSource = readHostHandlerSource();
 const serveSource = readServeSource();
+const reviewRouteSource = readReviewRouteSource();
+const reviewServeSource = readReviewServeSource();
 failures += assert(
   "host handler does not import renderTemplate",
   !/renderTemplate/.test(hostSource) &&
@@ -185,6 +202,19 @@ failures += assert(
   !/from ["']@\/lib\/templates\/render["']/.test(serveSource) &&
     !/render-public-html/.test(serveSource) &&
     !/generatePublicationPublicHtml/.test(serveSource),
+);
+failures += assert(
+  "review route does not import renderTemplate",
+  !/renderTemplate/.test(reviewRouteSource) &&
+    !/ClientReviewControls/.test(reviewRouteSource) &&
+    !/render-review-html/.test(reviewRouteSource),
+);
+failures += assert(
+  "serve-review-html does not import template renderers",
+  !/from ["']@\/lib\/templates\/render["']/.test(reviewServeSource) &&
+    !/render-public-html/.test(reviewServeSource) &&
+    !/generateReviewHtml/.test(reviewServeSource) &&
+    !/ClientReviewControls/.test(reviewServeSource),
 );
 
 const cedar = request("/", CEDAR_HOST);
@@ -362,8 +392,13 @@ if (!reviewToken) {
     `status=${review.status}`,
   );
   failures += assert(
-    "review remains dynamic SSR",
-    review.status === 200 && /self\.__next_f/.test(review.body),
+    "review valid token is stored HTML, not Next RSC",
+    review.status === 200 &&
+      /Project X review/i.test(review.body) &&
+      !/self\.__next_f/.test(review.body) &&
+      /publication-runtime\.css/.test(review.body) &&
+      /name="robots" content="noindex, nofollow"/.test(review.body),
+    `status=${review.status}`,
   );
   const reviewMedia = curl([
     "-H",
@@ -394,6 +429,15 @@ if (!reviewToken) {
 failures += assert(
   "invalid review token → 404",
   request(`/review/${INVALID_REVIEW_TOKEN}`, "127.0.0.1:3003").status === 404,
+);
+const malformedReview = request(`/review/${MALFORMED_REVIEW_TOKEN}`, "127.0.0.1:3003");
+failures += assert(
+  "malformed review token → generic 404",
+  malformedReview.status === 404 &&
+    /Review unavailable/.test(malformedReview.body) &&
+    /noindex, nofollow/.test(malformedReview.body) &&
+    !/self\.__next_f/.test(malformedReview.body),
+  `status=${malformedReview.status}`,
 );
 
 const adminPaths = [

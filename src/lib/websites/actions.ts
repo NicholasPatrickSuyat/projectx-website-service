@@ -12,6 +12,7 @@ import {
   serializeWebsiteContent,
   websiteContentJsonEquals,
 } from "@/lib/websites/content";
+import { generateReviewHtmlViaNode } from "@/lib/website-review/generate-via-node";
 import { getReviewSessionByWebsiteId } from "@/lib/website-review/repository";
 import { getReviewPath } from "@/lib/website-review/types";
 import {
@@ -87,6 +88,11 @@ export async function createWebsiteAction(
   }
 
   const content = initializeWebsiteContent(client, parsed.data.templateId);
+  const contentJson = serializeWebsiteContent(content, parsed.data.templateId);
+  const reviewHtml = generateReviewHtmlViaNode(parsed.data.templateId, contentJson);
+  if (!reviewHtml) {
+    return { error: "Could not prepare the Client Review preview. Try again." };
+  }
 
   let website;
   try {
@@ -94,7 +100,8 @@ export async function createWebsiteAction(
       clientId: client.id,
       templateId: parsed.data.templateId,
       name: parsed.data.name,
-      contentJson: serializeWebsiteContent(content, parsed.data.templateId),
+      contentJson,
+      reviewHtml,
     });
   } catch (error) {
     if (error instanceof Error && error.message === "WEBSITE_ALREADY_EXISTS") {
@@ -147,9 +154,17 @@ export async function saveWebsiteDraftAction(
     };
   }
 
+  const reviewHtml = generateReviewHtmlViaNode(existing.templateId, prepared.json);
+  if (!reviewHtml) {
+    return {
+      ok: false,
+      error: "Could not prepare the Client Review preview. Try Save Draft again.",
+    };
+  }
+
   let updated;
   try {
-    updated = await updateWebsiteContent(websiteId, prepared.json);
+    updated = await updateWebsiteContent(websiteId, prepared.json, reviewHtml);
   } catch (error) {
     if (error instanceof Error && error.message === "WEBSITE_VERSION_CONFLICT") {
       return {

@@ -117,9 +117,10 @@ export async function createWebsite(
             name,
             status,
             content_json,
+            review_html,
             created_at,
             updated_at
-          ) VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?)`,
         )
         .bind(
           id,
@@ -127,6 +128,7 @@ export async function createWebsite(
           input.templateId,
           input.name,
           input.contentJson,
+          input.reviewHtml,
           now,
           now,
         ),
@@ -157,6 +159,7 @@ export async function createWebsite(
 export async function updateWebsiteContent(
   id: string,
   contentJson: string,
+  reviewHtml: string,
 ): Promise<WebsiteContentSaveResult | null> {
   const existing = await getWebsiteById(id);
   if (!existing) {
@@ -173,14 +176,14 @@ export async function updateWebsiteContent(
       nextStatus === existing.status
         ? db
             .prepare(
-              "UPDATE websites SET content_json = ?, updated_at = ? WHERE id = ?",
+              "UPDATE websites SET content_json = ?, review_html = ?, updated_at = ? WHERE id = ?",
             )
-            .bind(contentJson, now, id)
+            .bind(contentJson, reviewHtml, now, id)
         : db
             .prepare(
-              "UPDATE websites SET content_json = ?, status = ?, updated_at = ? WHERE id = ?",
+              "UPDATE websites SET content_json = ?, review_html = ?, status = ?, updated_at = ? WHERE id = ?",
             )
-            .bind(contentJson, nextStatus, now, id),
+            .bind(contentJson, reviewHtml, nextStatus, now, id),
       prepareInsertWebsiteVersion(db, {
         id: versionId,
         websiteId: id,

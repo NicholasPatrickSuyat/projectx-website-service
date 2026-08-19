@@ -1,5 +1,4 @@
 import type { WebsiteRecordStatus } from "@/lib/domain";
-import type { WebsiteContent } from "@/lib/templates/types";
 
 export const WEBSITE_REVIEW_STATUSES = ["OPEN", "APPROVED"] as const;
 export type WebsiteReviewStatus = (typeof WEBSITE_REVIEW_STATUSES)[number];
@@ -38,13 +37,6 @@ export type WebsiteReviewAdminView = {
   reviewPath: string;
   feedbackCount: number;
   feedback: WebsiteReviewFeedback[];
-};
-
-export type ClientReviewPageData = {
-  templateId: string;
-  content: WebsiteContent;
-  sessionStatus: WebsiteReviewStatus;
-  approvedAt: string | null;
 };
 
 export type WebsiteReviewSessionRow = {

@@ -10,6 +10,7 @@ const handlerPath = path.join(
   ".open-next",
   "server-functions",
   "default",
+  "public-runtime",
   "handler.mjs",
 );
 const workerPath = path.join(root, "public-runtime", ".open-next", "worker.js");
@@ -36,9 +37,12 @@ function report(filePath, extraSearch = "") {
     ["AUTH_SESSION_SECRET", /AUTH_SESSION_SECRET/],
     ["pxws_admin_session", /pxws_admin_session/],
     ["generateViaNode", /generatePublicationPublicHtmlViaNode/],
+    ["generateReviewHtmlViaNode", /generateReviewHtmlViaNode/],
     ["execFileSync", /execFileSync/],
     ["servePublishedWebsiteHtml", /servePublishedWebsiteHtml/],
+    ["serveClientReviewHtml", /serveClientReviewHtml/],
     ["public_html", /public_html/],
+    ["review_html", /review_html/],
   ];
   for (const [label, pattern] of checks) {
     console.log(`${label}: ${pattern.test(text) ? "PRESENT" : "absent"}`);
@@ -54,4 +58,10 @@ const dryRun = path.join(
 );
 if (existsSync(dryRun)) {
   report(dryRun);
+}
+if (existsSync(workerPath)) {
+  report(workerPath);
+}
+if (existsSync(handlerPath)) {
+  report(handlerPath);
 }

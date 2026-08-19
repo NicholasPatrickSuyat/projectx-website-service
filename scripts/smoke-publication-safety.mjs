@@ -236,7 +236,7 @@ failures += assert(
     })
       .split(/\r?\n/)
       .filter(Boolean)
-      .every((name) => name.includes("0011")),
+      .every((name) => name.includes("0011") || name.includes("0012")),
 );
 
 const cedar = websiteState("cedar.localhost");
@@ -611,14 +611,15 @@ const review = firstRow(
   ),
 );
 if (!review?.token) {
-  failures += assert("review still dynamic", false, "no cedar review token");
+  failures += assert("review stored draft HTML", false, "no cedar review token");
 } else {
   const page = request(`/review/${review.token}`, "127.0.0.1:3003");
   failures += assert(
-    "review still dynamic SSR",
+    "review serves stored draft HTML, not Next RSC",
     page.status === 200 &&
       /Project X review/i.test(page.body) &&
-      /self\.__next_f/.test(page.body),
+      !/self\.__next_f/.test(page.body) &&
+      /noindex, nofollow/.test(page.body),
     `status=${page.status}`,
   );
 }

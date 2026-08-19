@@ -16,12 +16,12 @@ Approved production direction (**Option C**):
 - Private admin: remains local; do not deploy the admin application yet
 - One shared production D1 (`projectx-websites-production`, created in Milestone 24) and one shared production R2 (not created; R2 remains unapproved)
 - Production admin management is `npm run admin:production` on port 3004; `npm run dev` stays local-only
-- Production-public config is `public-runtime/wrangler.production.jsonc` (not used by local `npm run dev:public`). Milestone 25 proved the published-Website path on Workers Free; it is not a Client launch. Client Review CPU is not approved.
+- Production-public config is `public-runtime/wrangler.production.jsonc` (not used by local `npm run dev:public`). Milestone 25 proved the published-Website path on Workers Free; Milestone 26 proved Client Review on stored `review_html` for the initial Workers Free workflow. It is not a Client launch.
 - Many Client hostnames on one Worker (hostname routing implemented locally in Milestone 18)
 - Keep `/media/{id}` for the first Client; no public R2 hostname yet
 - PBKDF2-HMAC-SHA256 stays at **600,000** iterations
 - Workers Paid, Cloudflare Access, and payment information are **not** approved
-- Published-Website CPU on Workers Free is **PASS** (Milestone 25). Client Review CPU remains unproven.
+- Published-Website CPU on Workers Free is **PASS** (Milestone 25). Client Review on stored `review_html` is **PASS** for the initial Workers Free workflow (Milestone 26). One cold-isolate malformed request recorded 148 ms with no Error 1102; do not claim every invocation always stays below 10 ms.
 - R2 provisioning/payment requirements remain a future deployment gate
 
 Predictable and capped infrastructure cost is a hard Project X requirement.

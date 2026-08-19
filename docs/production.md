@@ -5,9 +5,11 @@ Project X Website Service.
 
 **Milestone 24 added a production D1 and a local production-admin
 command. Milestone 25 proved the published-Website path on Workers
-Free (Host → production D1 → stored `public_html`) and left
-`public-runtime/wrangler.production.jsonc` as durable config. It does
-not authorize a Client launch, R2, or Custom Domains.**
+Free (Host → production D1 → stored `public_html`). Milestone 26
+proved Client Review on stored `websites.review_html` (saved draft)
+for the initial Workers Free workflow. Config remains in
+`public-runtime/wrangler.production.jsonc`. It does not authorize a
+Client launch, R2, or Custom Domains.**
 
 Production D1 details: [`docs/production-admin.md`](production-admin.md).
 Production-public runtime: [`docs/production-public.md`](production-public.md).
@@ -17,12 +19,14 @@ Production deployment planning (Milestone 20):
 Public vs private split details: [`docs/public-runtime.md`](public-runtime.md).
 Static publication runtime (Milestone 22):
 [`docs/static-publication.md`](static-publication.md).
+Client Review runtime (Milestone 26):
+[`docs/client-review-runtime.md`](client-review-runtime.md).
 Hosting/cost research: [`docs/deployment-decision.md`](deployment-decision.md).
 
 ## Current state
 
 - No remote Cloudflare Worker
-- Remote D1: `projectx-websites-production` (empty business tables, migrations 0001–0011)
+- Remote D1: `projectx-websites-production` (empty business tables, migrations 0001–0012)
 - No remote R2
 - No Cloudflare Pages
 - No domains or DNS changes
@@ -32,8 +36,10 @@ Hosting/cost research: [`docs/deployment-decision.md`](deployment-decision.md).
 - Production admin: `npm run admin:production` on port 3004 (remote D1 only)
 - Public runtime local: `npm run dev:public` on port 3003
 - Production-public Worker: **not deployed**. Config lives in
-  `public-runtime/wrangler.production.jsonc`. Published-Website CPU on
-  Workers Free is approved; Client Review CPU is not.
+  `public-runtime/wrangler.production.jsonc`. Published-Website CPU and
+  initial Client Review CPU on Workers Free are approved. Do not claim
+  every invocation always stays below 10 ms (see the Client Review
+  cold-isolate caveat in [`docs/client-review-runtime.md`](client-review-runtime.md)).
 
 Do not expose this internal admin application publicly with real Client data
 until a later deployment milestone is explicitly approved. Admin authentication
@@ -262,8 +268,9 @@ review uses `/review/[token]` and `/media/{id}` only. Future public websites
 must not be these local preview routes.
 
 Review-token Server Actions (`submitReviewFeedbackAction`,
-`approveReviewAction`, `getClientReviewByToken`) stay token-authorized and
-must not create an admin session.
+`approveReviewAction`) stay token-authorized and
+must not create an admin session. Public GET uses stored `review_html`
+after token lookup; see [`docs/client-review-runtime.md`](client-review-runtime.md).
 
 ### Required configuration
 

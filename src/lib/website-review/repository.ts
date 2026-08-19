@@ -10,7 +10,9 @@ import {
   type WebsiteReviewFeedbackRow,
   type WebsiteReviewSession,
   type WebsiteReviewSessionRow,
+  type WebsiteReviewStatus,
 } from "@/lib/website-review/types";
+import { isWebsiteReviewStatus } from "@/lib/website-review/validation";
 import { isWebsiteId } from "@/lib/websites/validation";
 
 const SESSION_COLUMNS = `
@@ -56,6 +58,49 @@ export async function getReviewSessionByWebsiteId(
     .first<WebsiteReviewSessionRow>();
 
   return row ? mapWebsiteReviewSessionRow(row) : null;
+}
+
+export type StoredClientReview = {
+  reviewHtml: string;
+  status: WebsiteReviewStatus;
+  approvedAt: string | null;
+};
+
+export async function getStoredClientReviewByToken(
+  token: string,
+): Promise<StoredClientReview | null> {
+  if (!isReviewToken(token)) {
+    return null;
+  }
+
+  const db = await getDb();
+  const row = await db
+    .prepare(
+      `SELECT w.review_html AS review_html, s.status AS status, s.approved_at AS approved_at
+       FROM website_review_sessions s
+       INNER JOIN websites w ON w.id = s.website_id
+       WHERE s.token = ?
+       LIMIT 1`,
+    )
+    .bind(token)
+    .first<{
+      review_html: string;
+      status: string;
+      approved_at: string | null;
+    }>();
+
+  if (!row || typeof row.review_html !== "string" || row.review_html.length === 0) {
+    return null;
+  }
+  if (!isWebsiteReviewStatus(row.status)) {
+    return null;
+  }
+
+  return {
+    reviewHtml: row.review_html,
+    status: row.status,
+    approvedAt: row.approved_at,
+  };
 }
 
 export async function getReviewSessionByToken(

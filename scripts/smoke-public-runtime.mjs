@@ -19,6 +19,7 @@ const CEDAR_UNREFERENCED_MEDIA = "97852466-8e79-4ccd-bc27-f44ce213a200";
 const COPPER_MEDIA = "ff6e9372-408e-4cc1-807d-cdbc9c72ad13";
 const LINDEN_MEDIA = "23358428-5d8d-463d-bd9c-32f103fec309";
 const INVALID_REVIEW_TOKEN = "a".repeat(64);
+const MALFORMED_REVIEW_TOKEN = "not-a-valid-token";
 
 function curl(args) {
   const output = execFileSync("curl.exe", ["-sS", "-D", "-", "-o", "-", ...args], {
@@ -187,7 +188,10 @@ if (!reviewToken) {
   const review = request(`/review/${reviewToken}`, "127.0.0.1:3003");
   failures += assert(
     "9. review valid token → 200",
-    review.status === 200 && /Project X review/i.test(review.body),
+    review.status === 200 &&
+      /Project X review/i.test(review.body) &&
+      !/self\.__next_f/.test(review.body) &&
+      /noindex, nofollow/.test(review.body),
     `status=${review.status}`,
   );
 
@@ -221,8 +225,20 @@ if (!reviewToken) {
 const invalidReview = request(`/review/${INVALID_REVIEW_TOKEN}`, "127.0.0.1:3003");
 failures += assert(
   "10. invalid review token → 404",
-  invalidReview.status === 404,
+  invalidReview.status === 404 &&
+    /Review unavailable/.test(invalidReview.body) &&
+    !hasWebsiteUuid(invalidReview.body),
   `status=${invalidReview.status}`,
+);
+
+const malformedReview = request(`/review/${MALFORMED_REVIEW_TOKEN}`, "127.0.0.1:3003");
+failures += assert(
+  "10b. malformed review token → 404",
+  malformedReview.status === 404 &&
+    /Review unavailable/.test(malformedReview.body) &&
+    !hasWebsiteUuid(malformedReview.body) &&
+    !/self\.__next_f/.test(malformedReview.body),
+  `status=${malformedReview.status}`,
 );
 
 const adminPaths = [

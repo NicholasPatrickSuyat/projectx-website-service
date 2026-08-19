@@ -2,13 +2,17 @@
 
 **NO REAL CLIENT LAUNCH YET.** This document describes the public
 Next.js/OpenNext build target. The published-Website path is proven on
-Workers Free (Milestone 25). The public Worker is not currently
-deployed. Do not create R2, Custom Domains, or DNS from this file.
+Workers Free (Milestone 25). Client Review on stored `review_html` is
+proven for the initial Workers Free workflow (Milestone 26). The public
+Worker is not currently deployed. Do not create R2, Custom Domains, or
+DNS from this file.
 
 Production infrastructure planning:
 [`docs/production-infrastructure.md`](production-infrastructure.md).
 Static publication runtime (Milestone 22):
 [`docs/static-publication.md`](static-publication.md).
+Client Review runtime (Milestone 26):
+[`docs/client-review-runtime.md`](client-review-runtime.md).
 
 ## Why this exists
 
@@ -31,10 +35,11 @@ One repository. Two Next.js compilations.
 **Shared (imported by both apps):**
 
 - template renderers (`src/components/website-templates`, `src/lib/templates`)
-  — used by Client Review and admin Publish generation, **not** by the
-  normal published hostname handler
+  — used by admin Publish / Save Draft HTML generation, **not** by the
+  normal published hostname handler or public `/review/{token}` GET
 - Website content parsers
 - static publication serving (`serve-public-html.ts`)
+- stored Client Review serving (`serve-review-html.ts`)
 - hostname resolver (`website_domains`)
 - public media authorization (`src/lib/website-media/authorize-public.ts`)
 - Client Review token/feedback/approval (`src/lib/website-review/public-actions.ts`)
@@ -49,7 +54,8 @@ The public app has only:
 
 - `/host/[[...slug]]` Route Handler (stored publication HTML, no
   `renderTemplate()`)
-- `/review/[token]` (dynamic draft review; still uses `renderTemplate()`)
+- `/review/[token]` Route Handler (stored draft `review_html`, no
+  `renderTemplate()`)
 - `/media/[mediaId]` GET
 - `/publication-runtime.css`
 - bundled template assets under `/templates/{id}/...`
@@ -72,7 +78,7 @@ Worker.
 | `Host: copper.localhost` `/` | Copper **active** publication HTML |
 | `Host: linden.localhost` `/` | Linden **active** publication HTML |
 | Unknown or malformed hostname `/` | Public 404, fail closed |
-| `/review/{token}` | Saved-draft Client Review (valid token) or 404 |
+| `/review/{token}` | Saved-draft Client Review from stored `review_html` (valid token) or generic 404 |
 | `/media/{id}` | Same Milestone 18 authorization against the **active** publication (or review draft), no public R2 URL. Production-public without `MEDIA` returns 404. |
 | `/publication-runtime.css` | Shared generated template stylesheet |
 | `/templates/{service\|restaurant\|salon}-modern-01/*` | Bundled public assets |
@@ -167,8 +173,11 @@ Workers Free CPU for PBKDF2 is therefore an **admin-host** question, not
 a public Client-site question. The **published Website** path (Host →
 production D1 → stored `public_html`) is **PASS** on Workers Free
 (Milestone 25: n=60, p50 4 ms, max 9 ms, 0/60 > 10 ms). Client Review
-CPU is **not approved** (one invalid-token request recorded 72 ms).
-Local workerd wall-clock is not production CPU accounting.
+on stored `review_html` is **approved** for the initial Workers Free
+workflow (Milestone 26: valid n=20, p50 5 ms, max 9 ms, 0/20 > 10 ms).
+One cold-isolate malformed request recorded 148 ms with `outcome: ok`
+and no Error 1102; do not claim every invocation always stays below
+10 ms. Local workerd wall-clock is not production CPU accounting.
 
 ## Future production deployment plan
 
@@ -177,14 +186,13 @@ and [`docs/production-public.md`](production-public.md). A later approved
 milestone would still need to:
 
 1. Re-check current Cloudflare pricing and Workers Free CPU
-2. Validate Client Review production CPU before first Client use
-3. Redeploy `projectx-websites-public` from
+2. Redeploy `projectx-websites-public` from
    `public-runtime/wrangler.production.jsonc` when launch is approved
-4. Provision private R2 only if checkout risk is accepted
-5. Configure Custom Domains / routes (not `workers.dev` for Client URLs)
-6. Set production secrets **without** requiring admin credentials on the
+3. Provision private R2 only if checkout risk is accepted
+4. Configure Custom Domains / routes (not `workers.dev` for Client URLs)
+5. Set production secrets **without** requiring admin credentials on the
    public Worker (none required today)
-7. Do not copy local Cedar/Copper/Linden data into production
+6. Do not copy local Cedar/Copper/Linden data into production
 
 Until then:
 

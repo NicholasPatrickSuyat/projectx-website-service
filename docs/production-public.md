@@ -68,8 +68,9 @@ File: `public-runtime/wrangler.production.jsonc`
 - No admin secrets
 - Observability enabled
 
-The temporary Milestone 25 Worker was deleted after the CPU sample.
-The config remains. The Worker is not currently deployed.
+Temporary Milestone 25 and Milestone 26 Workers were deleted after
+their CPU samples. The config remains. The Worker is not currently
+deployed.
 
 ## Media without R2
 
@@ -85,20 +86,38 @@ Workers Free remains 10 ms CPU/invocation.
 | Milestone 21 | Dynamic SSR | **FAIL** — p50 ~13 ms, 65/81 > 10 ms |
 | Milestone 23 | Stored HTML, no production D1 | **PASS** — n=80, p50 3 ms, max 9 ms, 0/80 > 10 ms, Error 1102=0 |
 | Milestone 25 | Stored HTML + production D1 hostname lookup | **PASS** — publication n=60, p50 4 ms, max 9 ms, 0/60 > 10 ms, Error 1102=0 |
+| Milestone 26 | Stored draft `review_html` + early 404 | **PASS** for initial Client Review — valid n=20, p50 5 ms, max 9 ms, 0/20 > 10 ms, Error 1102=0 |
 
-Do not claim every public route is Workers Free-proven.
+Do not claim every invocation always stays below 10 ms. See the
+Client Review cold-isolate caveat below.
 
-### Client Review CPU — not approved
+### Client Review CPU — approved for initial Workers Free
 
-One separate request during Milestone 25:
+**Old path:** Next.js page + `renderTemplate()` SSR. Milestone 25
+`GET /review/not-a-valid-token` recorded cpuTime **72 ms**.
 
-`GET /review/not-a-valid-token` → cpuTime **72 ms**, wallTime 78 ms,
-outcome `ok`.
+**New path:** stored `websites.review_html` (saved draft, not
+`public_html`) + early generic 404. See
+[`docs/client-review-runtime.md`](client-review-runtime.md).
 
-That is **not** the static publication path. Client Review production
-CPU is **not approved**. This does not prove a valid review token will
-fail. It remains unproven and must be validated before the first Client
-relies on it. Do not redesign Client Review from this result.
+Controlled production sample (Workers Logs `cpuTime`):
+
+| Category | n | p50 | max | >10 ms | Error 1102 |
+|---|---:|---:|---:|---:|---:|
+| Valid review | 20 | 5 ms | 9 ms | 0 | 0 |
+| Well-formed nonexistent | 20 | 4.5 ms | 9 ms | 0 | 0 |
+| Revoked / regenerated | 20 | 4 ms | 7 ms | 0 | 0 |
+| Malformed warm | 19 | 4 ms | 10 ms | 0 | 0 |
+
+Workers Free is **approved** for this initial Client Review workflow.
+Do not enable Workers Paid.
+
+**Cold-isolate caveat:** one malformed-token request after a long idle
+recorded cpuTime **148 ms**, wallTime 152 ms, `outcome: ok`, HTTP 404,
+Error 1102 = 0. Do not claim cold starts are proven always below the
+Free CPU limit. Do not create another optimization milestone solely for
+this observation. Client Review is occasional approval traffic, not the
+normal published Website path.
 
 ## Forbidden
 
