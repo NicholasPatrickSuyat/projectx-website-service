@@ -67,6 +67,14 @@ export async function getRequiredDatabaseBinding(): Promise<D1Database> {
   return env.DB;
 }
 
+export async function hasMediaBinding(): Promise<boolean> {
+  if (!isCloudflareWorkersRuntime()) {
+    return true;
+  }
+  const env = await getCloudflareEnv();
+  return Boolean(env.MEDIA);
+}
+
 export async function getRequiredMediaBinding(): Promise<MediaObjectStore> {
   const env = await getCloudflareEnv();
   if (!env.MEDIA) {

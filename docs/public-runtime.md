@@ -1,8 +1,9 @@
 # Public runtime (Milestone 19)
 
-**NO REAL DEPLOYMENT YET.** This document describes a local/public-only
-build target. It does not authorize creating a remote Worker, D1, R2,
-domain, DNS record, or paid Cloudflare service.
+**NO REAL CLIENT LAUNCH YET.** This document describes the public
+Next.js/OpenNext build target. The published-Website path is proven on
+Workers Free (Milestone 25). The public Worker is not currently
+deployed. Do not create R2, Custom Domains, or DNS from this file.
 
 Production infrastructure planning:
 [`docs/production-infrastructure.md`](production-infrastructure.md).
@@ -72,7 +73,7 @@ Worker.
 | `Host: linden.localhost` `/` | Linden **active** publication HTML |
 | Unknown or malformed hostname `/` | Public 404, fail closed |
 | `/review/{token}` | Saved-draft Client Review (valid token) or 404 |
-| `/media/{id}` | Same Milestone 18 authorization against the **active** publication (or review draft), no public R2 URL |
+| `/media/{id}` | Same Milestone 18 authorization against the **active** publication (or review draft), no public R2 URL. Production-public without `MEDIA` returns 404. |
 | `/publication-runtime.css` | Shared generated template stylesheet |
 | `/templates/{service\|restaurant\|salon}-modern-01/*` | Bundled public assets |
 | `/login`, `/clients`, `/websites`, `/templates` admin, `/settings`, `/support-requests`, `/site/...`, `/published/...` | 404 / unavailable (not admin login) |
@@ -163,32 +164,32 @@ never imports `getVerifiedAdminSession` / `getAdminAuthConfig`, and uses
 `authorize-public.ts` instead of the admin media allow-by-session path.
 
 Workers Free CPU for PBKDF2 is therefore an **admin-host** question, not
-a public Client-site question. Public OpenNext SSR CPU on Workers Free
-remains **UNPROVEN** / **INCONCLUSIVE** without a remote deployment.
+a public Client-site question. The **published Website** path (Host →
+production D1 → stored `public_html`) is **PASS** on Workers Free
+(Milestone 25: n=60, p50 4 ms, max 9 ms, 0/60 > 10 ms). Client Review
+CPU is **not approved** (one invalid-token request recorded 72 ms).
 Local workerd wall-clock is not production CPU accounting.
 
 ## Future production deployment plan
 
-Follow [`docs/production-infrastructure.md`](production-infrastructure.md).
-A later approved milestone would still need to:
+Follow [`docs/production-infrastructure.md`](production-infrastructure.md)
+and [`docs/production-public.md`](production-public.md). A later approved
+milestone would still need to:
 
 1. Re-check current Cloudflare pricing and Workers Free CPU
-2. Run the designed Workers Free CPU smoke test (public Worker only;
-   temporary `workers.dev`; no customer domain)
-3. Create a remote Worker from the **public** artifact only **after** CPU
-   review
-4. Create/bind production D1 (empty) and, only if checkout risk is
-   accepted, private R2
-5. Apply migrations 0001–0011 remotely to empty production D1
-6. Configure Custom Domains / routes (not `workers.dev` for Client URLs)
-7. Set production secrets **without** requiring admin credentials on the
+2. Validate Client Review production CPU before first Client use
+3. Redeploy `projectx-websites-public` from
+   `public-runtime/wrangler.production.jsonc` when launch is approved
+4. Provision private R2 only if checkout risk is accepted
+5. Configure Custom Domains / routes (not `workers.dev` for Client URLs)
+6. Set production secrets **without** requiring admin credentials on the
    public Worker (none required today)
-8. Do not copy local Cedar/Copper/Linden data into production
+7. Do not copy local Cedar/Copper/Linden data into production
 
 Until then:
 
 - Remote Worker: NONE
-- Remote D1: NONE
+- Remote D1: `projectx-websites-production` (empty business tables)
 - Remote R2: NONE
 - Domains/DNS: NONE
 - Billing: NONE

@@ -1,0 +1,39 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  // Production-public Worker config. Not used by npm run dev or
+  // npm run dev:public. Bind production D1 only. Do not bind R2.
+  // Do not add Custom Domains or DNS from this file.
+  // workers.dev may stay enabled for future controlled tests; it is not
+  // a Client URL. Real Client production must use a Custom Domain later.
+  "name": "projectx-websites-public",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-08-13",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "workers_dev": true,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "projectx-websites-public"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "projectx-websites-production",
+      "database_id": "db47d1af-bc9c-47f0-ad8a-1377971dbd24",
+      "migrations_dir": "../migrations",
+      "remote": true
+    }
+  ]
+}

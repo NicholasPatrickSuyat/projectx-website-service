@@ -4,9 +4,13 @@ This document describes the intended future production architecture for
 Project X Website Service.
 
 **Milestone 24 added a production D1 and a local production-admin
-command. It does not deploy a Worker, enable R2, or onboard a Client.**
+command. Milestone 25 proved the published-Website path on Workers
+Free (Host → production D1 → stored `public_html`) and left
+`public-runtime/wrangler.production.jsonc` as durable config. It does
+not authorize a Client launch, R2, or Custom Domains.**
 
 Production D1 details: [`docs/production-admin.md`](production-admin.md).
+Production-public runtime: [`docs/production-public.md`](production-public.md).
 
 Production deployment planning (Milestone 20):
 [`docs/production-infrastructure.md`](production-infrastructure.md).
@@ -18,7 +22,7 @@ Hosting/cost research: [`docs/deployment-decision.md`](deployment-decision.md).
 ## Current state
 
 - No remote Cloudflare Worker
-- Remote D1: `projectx-websites-production` (empty, migrations 0001–0011)
+- Remote D1: `projectx-websites-production` (empty business tables, migrations 0001–0011)
 - No remote R2
 - No Cloudflare Pages
 - No domains or DNS changes
@@ -26,7 +30,10 @@ Hosting/cost research: [`docs/deployment-decision.md`](deployment-decision.md).
 - Current cost: $0
 - Admin application: `npm run dev` on port 3002 (local D1 only)
 - Production admin: `npm run admin:production` on port 3004 (remote D1 only)
-- Public runtime target: `npm run dev:public` on port 3003
+- Public runtime local: `npm run dev:public` on port 3003
+- Production-public Worker: **not deployed**. Config lives in
+  `public-runtime/wrangler.production.jsonc`. Published-Website CPU on
+  Workers Free is approved; Client Review CPU is not.
 
 Do not expose this internal admin application publicly with real Client data
 until a later deployment milestone is explicitly approved. Admin authentication

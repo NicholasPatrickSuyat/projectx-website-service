@@ -1,3 +1,4 @@
+import { hasMediaBinding } from "@/lib/runtime/env";
 import { authorizePublicRuntimeMedia } from "@/lib/website-media/authorize-public";
 import { getWebsiteMediaById } from "@/lib/website-media/repository";
 import { getWebsiteMediaStorage } from "@/lib/website-media/storage";
@@ -19,6 +20,11 @@ export async function GET(
 ) {
   const { mediaId } = await params;
   if (!isWebsiteId(mediaId)) {
+    return notFoundResponse();
+  }
+
+  // Production public has no R2. Missing MEDIA must 404, not 500.
+  if (!(await hasMediaBinding())) {
     return notFoundResponse();
   }
 

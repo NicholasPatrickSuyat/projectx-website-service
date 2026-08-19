@@ -2,8 +2,10 @@
 
 **Milestone 20 planning document. This does not authorize deployment.**
 
-**NO REAL DEPLOYMENT YET.** Do not create a remote Worker, D1, R2 bucket,
-Custom Domain, DNS record, or paid Cloudflare product from this repository.
+**NO REAL CLIENT LAUNCH YET.** Do not create R2, a Custom Domain, DNS,
+or a paid Cloudflare product from this repository without a later
+approval. Production D1 exists. The public Worker is not currently
+deployed.
 
 This is the main production deployment planning reference for Project X
 Website Service. Related documents:
@@ -28,19 +30,21 @@ Do not treat this document as a billing guarantee.
 |---|---|
 | Admin app | Local only, `npm run dev` → http://localhost:3002 |
 | Public runtime | Local only, `npm run dev:public` → http://localhost:3003 |
-| Remote Worker | NONE |
-| Remote D1 | NONE |
+| Remote Worker | NONE (Milestone 25 test Worker deleted) |
+| Remote D1 | `projectx-websites-production` (empty business tables) |
 | Remote R2 | NONE |
 | Custom Domains / DNS | NONE |
 | Workers Paid | NONE |
 | Payment information | NONE (must stay that way until a later gate accepts R2 checkout) |
 | Cost | **$0** |
 
-Public OpenNext artifact gzip size (Milestone 19, local dry-run):
+Public OpenNext artifact gzip size (Milestone 19 / 25, local dry-run):
 **~1.09 MiB gzip** (under the documented Workers Free **3 MB gzip** /
 **64 MB uncompressed** Worker size limit).
 
-Public Workers Free **CPU compatibility remains UNPROVEN**. Local workerd
+The **published Website** path on Workers Free is **PASS** (Milestone 25:
+Host → production D1 → stored `public_html`, n=60, p50 4 ms, max 9 ms,
+0/60 > 10 ms). Client Review CPU is **not approved**. Local workerd
 wall-clock is not Cloudflare production CPU accounting.
 
 ---
@@ -202,9 +206,10 @@ Source: https://developers.cloudflare.com/workers/configuration/routing/workers-
 | Workers Free | Supported (no extra Paid plan documented) |
 | Cloudflare Access | Optional sign-in gate (do **not** enable Access here) |
 
-This repo keeps `workers_dev: false` in both Wrangler files. A temporary
-enable for a **Milestone 21 CPU smoke test only** is a documented option,
-not a Client URL.
+Local Wrangler files keep `workers_dev: false`.
+`public-runtime/wrangler.production.jsonc` may keep `workers_dev: true`
+for future controlled tests. That is **not** a Client URL. Real Client
+production must use a Custom Domain later.
 
 ### 2.7 CPU inspection
 
@@ -230,6 +235,18 @@ running the Worker on Cloudflare. Local workerd wall-clock ≠ Worker CPU.
 Workers Logs is included on Workers Free (with the Free log-event cap).
 It is not a separate paid add-on at the Free included volume. Do not
 enable extra paid observability (Logpush, Log Explorer) without approval.
+
+Measured production CPU (Workers Logs `cpuTime`, milliseconds):
+
+| Milestone | Path | Result |
+|---|---|---|
+| 21 | Dynamic SSR | FAIL — p50 ~13 ms, 65/81 > 10 ms |
+| 23 | Stored HTML, no production D1 | PASS — n=80, p50 3 ms, max 9 ms, 0/80 > 10 ms |
+| 25 | Stored HTML + production D1 | PASS — publication n=60, p50 4 ms, max 9 ms, 0/60 > 10 ms, Error 1102=0 |
+
+Client Review is **not** in that PASS. One Milestone 25 invalid-token
+request recorded 72 ms CPU (`outcome: ok`). Validate the real review
+path before first Client use.
 
 ### 2.8 Billing alerts and caps
 
@@ -680,7 +697,10 @@ Do **not** onboard a real Client until ChatGPT approves that step.
 
 - `npm run db:migrate` uses `--local`
 - Default `wrangler.jsonc` and `public-runtime/wrangler.jsonc` keep `"remote": false` and the placeholder D1 id
-- `wrangler.production-admin.jsonc` is the only file with `"remote": true` and the production D1 UUID
+- `wrangler.production-admin.jsonc` and
+  `public-runtime/wrangler.production.jsonc` are the only files with
+  `"remote": true` and the production D1 UUID. Local `npm run dev` /
+  `npm run dev:public` must not load them.
 - `npm run admin:production` is the only command that sets `PXWS_ADMIN_PRODUCTION_COMMAND=1`
 - Placeholder D1/R2 identifiers in the default configs are not provisioned resources
 - Public preview strips admin secrets
@@ -694,7 +714,7 @@ Do **not** onboard a real Client until ChatGPT approves that step.
 | Local admin | Local emulator | Filesystem | `npm run dev` (3002) |
 | Production admin-management | Remote `projectx-websites-production` | Filesystem (R2 not approved) | `npm run admin:production` (3004) |
 | Local public | Same local emulator | Filesystem / local R2 emulator | `npm run dev:public` / `preview:cloudflare:public` |
-| Production public | Remote `projectx-websites-production` | Remote R2 later | Not deployed |
+| Production public | Remote `projectx-websites-production` | **No R2** (`/media` 404 until R2 is approved) | `public-runtime/wrangler.production.jsonc` (Worker not currently deployed) |
 
 ---
 
@@ -704,7 +724,9 @@ Public runtime **does not require** admin secrets:
 
 - Not required: `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`,
   `AUTH_SESSION_SECRET`
-- Bindings: `DB`, `MEDIA` (+ OpenNext `ASSETS` / `WORKER_SELF_REFERENCE`)
+- Bindings: `DB` required. `MEDIA` is required only after R2 is approved.
+  Milestone 25 production-public has **no MEDIA**; `/media` returns 404.
+  OpenNext still uses `ASSETS` / `WORKER_SELF_REFERENCE`.
 - `NEXTJS_ENV` is a non-secret environment flag
 
 Client Review authorization is the unguessable token stored in D1, plus

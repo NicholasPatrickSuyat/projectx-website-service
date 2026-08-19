@@ -90,7 +90,9 @@ for (const rel of [
   "docs/public-runtime.md",
   "docs/deployment-decision.md",
   "docs/production-admin.md",
+  "docs/production-public.md",
   "public-runtime/wrangler.jsonc",
+  "public-runtime/wrangler.production.jsonc",
   "wrangler.jsonc",
   "wrangler.production-admin.jsonc",
 ]) {
@@ -160,6 +162,36 @@ if (/ADMIN_USERNAME|ADMIN_PASSWORD_HASH|AUTH_SESSION_SECRET/.test(productionAdmi
 } else {
   pass("wrangler.production-admin.jsonc has no admin secrets");
 }
+
+const productionPublic = read("public-runtime/wrangler.production.jsonc");
+if (
+  /"name"\s*:\s*"projectx-websites-public"/.test(productionPublic) &&
+  /"remote"\s*:\s*true/.test(productionPublic) &&
+  productionPublic.includes(PRODUCTION_D1_ID)
+) {
+  pass("public-runtime/wrangler.production.jsonc binds remote production D1");
+} else {
+  fail(
+    "public-runtime/wrangler.production.jsonc binds remote production D1",
+    "missing name, remote:true, or production UUID",
+  );
+}
+if (/"workers_dev"\s*:\s*true/.test(productionPublic)) {
+  pass("public-runtime/wrangler.production.jsonc controlled-test workers.dev is explicit");
+} else {
+  fail("public-runtime/wrangler.production.jsonc controlled-test workers.dev is explicit");
+}
+if (/r2_buckets/.test(productionPublic)) {
+  fail("public-runtime/wrangler.production.jsonc has no R2", "r2_buckets found");
+} else {
+  pass("public-runtime/wrangler.production.jsonc has no R2");
+}
+if (/ADMIN_USERNAME|ADMIN_PASSWORD_HASH|AUTH_SESSION_SECRET/.test(productionPublic)) {
+  fail("public-runtime/wrangler.production.jsonc has no admin secrets", "admin secret name found");
+} else {
+  pass("public-runtime/wrangler.production.jsonc has no admin secrets");
+}
+
 for (const rel of ["wrangler.jsonc", "public-runtime/wrangler.jsonc"]) {
   if (read(rel).includes(PRODUCTION_D1_ID)) {
     fail(`${rel} stays off production D1`, "production UUID found");
@@ -209,6 +241,15 @@ if (
   pass("npm run dev remains local-only on port 3002");
 } else {
   fail("npm run dev remains local-only on port 3002");
+}
+if (
+  typeof packageJson.scripts?.["dev:public"] === "string" &&
+  packageJson.scripts["dev:public"].includes("--port 3003") &&
+  !packageJson.scripts["dev:public"].includes("wrangler.production")
+) {
+  pass("npm run dev:public stays on local public wrangler");
+} else {
+  fail("npm run dev:public stays on local public wrangler");
 }
 
 const publicDevVars = path.join(root, "public-runtime", ".dev.vars");

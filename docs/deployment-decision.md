@@ -16,11 +16,12 @@ Approved production direction (**Option C**):
 - Private admin: remains local; do not deploy the admin application yet
 - One shared production D1 (`projectx-websites-production`, created in Milestone 24) and one shared production R2 (not created; R2 remains unapproved)
 - Production admin management is `npm run admin:production` on port 3004; `npm run dev` stays local-only
-- Many Client hostnames on one Worker (hostname routing implemented locally in Milestone 18; not deployed)
+- Production-public config is `public-runtime/wrangler.production.jsonc` (not used by local `npm run dev:public`). Milestone 25 proved the published-Website path on Workers Free; it is not a Client launch. Client Review CPU is not approved.
+- Many Client hostnames on one Worker (hostname routing implemented locally in Milestone 18)
 - Keep `/media/{id}` for the first Client; no public R2 hostname yet
 - PBKDF2-HMAC-SHA256 stays at **600,000** iterations
 - Workers Paid, Cloudflare Access, and payment information are **not** approved
-- Public OpenNext SSR CPU on Workers Free remains **INCONCLUSIVE** and must be smoke-tested before a Client site is announced production-live
+- Published-Website CPU on Workers Free is **PASS** (Milestone 25). Client Review CPU remains unproven.
 - R2 provisioning/payment requirements remain a future deployment gate
 
 Predictable and capped infrastructure cost is a hard Project X requirement.
