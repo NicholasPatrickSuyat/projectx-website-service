@@ -1,5 +1,6 @@
 import { getWebsiteMediaById } from "@/lib/website-media/repository";
 import { authorizeMediaRequest } from "@/lib/website-media/authorize";
+import { getWebsiteMediaResponseHeaders } from "@/lib/website-media/headers";
 import { getWebsiteMediaStorage } from "@/lib/website-media/storage";
 import { isWebsiteId } from "@/lib/websites/validation";
 
@@ -40,11 +41,10 @@ export async function GET(
 
   return new Response(bytes as unknown as BodyInit, {
     status: 200,
-    headers: {
-      "Content-Type": media.mimeType,
-      "Content-Length": String(bytes.byteLength),
-      "Cache-Control": "private, max-age=3600",
-      "X-Content-Type-Options": "nosniff",
-    },
+    headers: getWebsiteMediaResponseHeaders({
+      mimeType: media.mimeType,
+      originalFilename: media.originalFilename,
+      byteLength: bytes.byteLength,
+    }),
   });
 }

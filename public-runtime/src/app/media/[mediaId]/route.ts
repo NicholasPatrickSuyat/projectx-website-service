@@ -1,5 +1,6 @@
-import { hasMediaBinding } from "@/lib/runtime/env";
+import { hasMediaKvBinding } from "@/lib/runtime/env";
 import { authorizePublicRuntimeMedia } from "@/lib/website-media/authorize-public";
+import { getWebsiteMediaResponseHeaders } from "@/lib/website-media/headers";
 import { getWebsiteMediaById } from "@/lib/website-media/repository";
 import { getWebsiteMediaStorage } from "@/lib/website-media/storage";
 import { isWebsiteId } from "@/lib/websites/validation";
@@ -23,8 +24,9 @@ export async function GET(
     return notFoundResponse();
   }
 
-  // Production public has no R2. Missing MEDIA must 404, not 500.
-  if (!(await hasMediaBinding())) {
+  // Production public has no KV until the namespace is bound. Missing
+  // MEDIA_KV must 404, not 500, and must not fall back to R2 or disk.
+  if (!(await hasMediaKvBinding())) {
     return notFoundResponse();
   }
 
@@ -46,11 +48,10 @@ export async function GET(
 
   return new Response(bytes as unknown as BodyInit, {
     status: 200,
-    headers: {
-      "Content-Type": media.mimeType,
-      "Content-Length": String(bytes.byteLength),
-      "Cache-Control": "private, max-age=3600",
-      "X-Content-Type-Options": "nosniff",
-    },
+    headers: getWebsiteMediaResponseHeaders({
+      mimeType: media.mimeType,
+      originalFilename: media.originalFilename,
+      byteLength: bytes.byteLength,
+    }),
   });
 }

@@ -35,6 +35,21 @@ function loadLocalDevVars() {
 
 loadLocalDevVars();
 
+const wranglerConfigPath = path.join(__dirname, "wrangler.jsonc");
+if (fs.existsSync(wranglerConfigPath)) {
+  const configText = fs.readFileSync(wranglerConfigPath, "utf8");
+  if (/"remote"\s*:\s*true/.test(configText)) {
+    throw new Error(
+      "public-runtime/wrangler.jsonc must keep remote: false. Production KV/D1 are not used by npm run dev:public.",
+    );
+  }
+  if (configText.includes("f95b658d6c914e0fbec1f06bec4b6e4d")) {
+    throw new Error(
+      "public-runtime/wrangler.jsonc must not bind production MEDIA_KV.",
+    );
+  }
+}
+
 const nextConfig: NextConfig = {
   serverExternalPackages: ["wrangler"],
   outputFileTracingRoot: repoRoot,

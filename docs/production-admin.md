@@ -32,6 +32,13 @@ The UUID is a resource identifier, not a secret. It belongs only in
 - OpenNext `remoteBindings: true` so D1 `remote: true` is not ignored
 - gitignored `.dev.vars.production-admin`
 - **no** R2 binding
+- production `MEDIA_KV` bound to `projectx-websites-media` (`remote: true`)
+
+If the remote D1 schema is missing, production admin **fails closed**. It does
+not migrate, seed, or fall back to the local emulator.
+
+Media writes in production admin require `MEDIA_KV`. Missing `MEDIA_KV` fails
+closed. Uploads do not write the local filesystem and do not use R2.
 
 If the remote D1 schema is missing, production admin **fails closed**. It does
 not migrate, seed, or fall back to the local emulator.

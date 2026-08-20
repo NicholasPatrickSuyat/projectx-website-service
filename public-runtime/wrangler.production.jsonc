@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   // Production-public Worker config. Not used by npm run dev or
-  // npm run dev:public. Bind production D1 only. Do not bind R2.
-  // Do not add Custom Domains or DNS from this file.
+  // npm run dev:public. Bind production D1 and production MEDIA_KV.
+  // Do not bind R2. Do not add Custom Domains or DNS from this file.
   // workers.dev may stay enabled for future controlled tests; it is not
   // a Client URL. Real Client production must use a Custom Domain later.
   "name": "projectx-websites-public",
@@ -33,6 +33,13 @@
       "database_name": "projectx-websites-production",
       "database_id": "db47d1af-bc9c-47f0-ad8a-1377971dbd24",
       "migrations_dir": "../migrations",
+      "remote": true
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "MEDIA_KV",
+      "id": "f95b658d6c914e0fbec1f06bec4b6e4d",
       "remote": true
     }
   ]

@@ -82,6 +82,16 @@ if (PRODUCTION_ADMIN) {
       throw new Error("Production admin must not bind remote R2.");
     }
   }
+  if (/r2_buckets/.test(configText)) {
+    throw new Error("Production admin must not bind R2.");
+  }
+  if (!configText.includes("f95b658d6c914e0fbec1f06bec4b6e4d")) {
+    throw new Error(`${WRANGLER_CONFIG} must bind production MEDIA_KV.`);
+  }
+  const kvBlock = /"kv_namespaces"\s*:\s*\[[\s\S]*?\]/.exec(configText)?.[0] || "";
+  if (!/"binding"\s*:\s*"MEDIA_KV"/.test(kvBlock) || !/"remote"\s*:\s*true/.test(kvBlock)) {
+    throw new Error("Production admin MEDIA_KV must set remote: true.");
+  }
 } else if (fs.existsSync(wranglerConfigPath)) {
   const configText = fs.readFileSync(wranglerConfigPath, "utf8");
   if (configText.includes("db47d1af-bc9c-47f0-ad8a-1377971dbd24")) {
@@ -89,9 +99,14 @@ if (PRODUCTION_ADMIN) {
       "wrangler.jsonc must not bind production D1. Use npm run admin:production.",
     );
   }
+  if (configText.includes("f95b658d6c914e0fbec1f06bec4b6e4d")) {
+    throw new Error(
+      "wrangler.jsonc must not bind production MEDIA_KV. Use npm run admin:production.",
+    );
+  }
   if (/"remote"\s*:\s*true/.test(configText)) {
     throw new Error(
-      "wrangler.jsonc must keep remote: false. Production D1 is admin:production only.",
+      "wrangler.jsonc must keep remote: false. Production D1/KV are admin:production only.",
     );
   }
 }

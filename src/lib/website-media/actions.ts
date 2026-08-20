@@ -2,20 +2,20 @@
 
 import { getAdminActionError } from "@/lib/auth/guard";
 import {
-  extensionFromOriginalFilename,
-  inspectWebsiteImageBytes,
-  sanitizeOriginalFilename,
-} from "@/lib/website-media/inspect";
+  deleteWebsiteMediaRecordThenObject,
+  writeWebsiteMediaThenRecord,
+} from "@/lib/website-media/consistency";
 import {
   createWebsiteMedia,
+  deleteWebsiteMediaForWebsite,
+  getWebsiteMediaForWebsite,
   listWebsiteMedia,
+  websiteMediaIsReferenced,
 } from "@/lib/website-media/repository";
+import { getDeleteWebsiteMediaDenial } from "@/lib/website-media/delete-guard";
 import { getWebsiteMediaStorage } from "@/lib/website-media/storage";
-import {
-  WEBSITE_MEDIA_MAX_BYTES,
-  formatWebsiteMediaSize,
-  type WebsiteMedia,
-} from "@/lib/website-media/types";
+import { planWebsiteMediaUpload } from "@/lib/website-media/upload-plan";
+import { type WebsiteMedia } from "@/lib/website-media/types";
 import { getWebsiteById } from "@/lib/websites/repository";
 import type { Website } from "@/lib/websites/types";
 import { isWebsiteId } from "@/lib/websites/validation";
@@ -28,18 +28,9 @@ export type UploadWebsiteMediaResult =
   | { ok: true; media: WebsiteMedia }
   | { ok: false; error: string };
 
-const REJECTED_EXTENSIONS = new Set([
-  "svg",
-  "svgz",
-  "gif",
-  "html",
-  "htm",
-  "js",
-  "mjs",
-  "exe",
-  "php",
-  "sh",
-]);
+export type DeleteWebsiteMediaResult =
+  | { ok: true }
+  | { ok: false; error: string };
 
 type WebsiteLookup =
   | { ok: true; website: Website }
@@ -100,49 +91,106 @@ export async function uploadWebsiteMediaAction(
   }
 
   const file = formData.get("file");
-  if (!isUploadedFile(file) || file.size === 0) {
+  if (!isUploadedFile(file)) {
     return { ok: false, error: "Choose a JPEG, PNG, or WebP image to upload." };
   }
 
-  if (file.size > WEBSITE_MEDIA_MAX_BYTES) {
-    return {
-      ok: false,
-      error: `That image is too large. The maximum size is ${formatWebsiteMediaSize(WEBSITE_MEDIA_MAX_BYTES)}.`,
-    };
-  }
-
-  const originalFilename = sanitizeOriginalFilename(file.name || "image");
-  const originalExtension = extensionFromOriginalFilename(originalFilename);
-  if (originalExtension === "svg" || originalExtension === "svgz") {
-    return { ok: false, error: "SVG uploads are not accepted." };
-  }
-  if (REJECTED_EXTENSIONS.has(originalExtension)) {
-    return {
-      ok: false,
-      error: "That file type is not allowed. Use JPEG, PNG, or WebP.",
-    };
-  }
-
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const inspected = inspectWebsiteImageBytes(bytes);
-  if ("error" in inspected) {
-    return { ok: false, error: inspected.error };
+  const planned = planWebsiteMediaUpload({
+    originalName: file.name || "image",
+    size: file.size,
+    bytes,
+    id: crypto.randomUUID(),
+  });
+  if (!planned.ok) {
+    return { ok: false, error: planned.error };
   }
 
-  const id = crypto.randomUUID();
-  const storedFilename = `${id}.${inspected.extension}`;
   const storage = await getWebsiteMediaStorage();
 
-  await storage.write(websiteId, storedFilename, bytes);
+  try {
+    const media = await writeWebsiteMediaThenRecord(
+      storage,
+      websiteId,
+      planned.plan.storedFilename,
+      bytes,
+      () =>
+        createWebsiteMedia({
+          id: planned.plan.id,
+          websiteId,
+          originalFilename: planned.plan.originalFilename,
+          storedFilename: planned.plan.storedFilename,
+          mimeType: planned.plan.mimeType,
+          fileSize: planned.plan.fileSize,
+        }),
+    );
+    return { ok: true, media };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("MEDIA_KV")) {
+      return {
+        ok: false,
+        error: "Media storage is unavailable.",
+      };
+    }
+    return { ok: false, error: "That image could not be saved." };
+  }
+}
 
-  const media = await createWebsiteMedia({
-    id,
-    websiteId,
-    originalFilename,
-    storedFilename,
-    mimeType: inspected.mimeType,
-    fileSize: bytes.byteLength,
+export async function deleteWebsiteMediaAction(
+  websiteId: string,
+  mediaId: string,
+): Promise<DeleteWebsiteMediaResult> {
+  const denied = await getAdminActionError();
+  if (denied) {
+    return { ok: false, error: denied };
+  }
+
+  const found = await requireWebsite(websiteId);
+  if (!found.ok) {
+    return { ok: false, error: found.error };
+  }
+
+  if (!isWebsiteId(mediaId)) {
+    return { ok: false, error: "That image could not be found." };
+  }
+
+  const media = await getWebsiteMediaForWebsite(websiteId, mediaId);
+  const deniedDelete = getDeleteWebsiteMediaDenial({
+    adminError: null,
+    websiteExists: true,
+    mediaBelongsToWebsite: Boolean(media),
+    referenced: media
+      ? await websiteMediaIsReferenced(websiteId, mediaId)
+      : false,
   });
+  if (deniedDelete) {
+    return { ok: false, error: deniedDelete };
+  }
+  if (!media) {
+    return { ok: false, error: "That image could not be found." };
+  }
 
-  return { ok: true, media };
+  const storage = await getWebsiteMediaStorage();
+  try {
+    await deleteWebsiteMediaRecordThenObject(
+      storage,
+      websiteId,
+      media.storedFilename,
+      async () => {
+        const deleted = await deleteWebsiteMediaForWebsite(websiteId, mediaId);
+        if (!deleted) {
+          throw new Error("Media metadata was not deleted.");
+        }
+      },
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("MEDIA_KV")) {
+      return { ok: false, error: "Media storage is unavailable." };
+    }
+    return { ok: false, error: "That image could not be deleted." };
+  }
+
+  return { ok: true };
 }

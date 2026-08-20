@@ -4,8 +4,8 @@
 
 **NO REAL CLIENT LAUNCH YET.** Do not create R2, a Custom Domain, DNS,
 or a paid Cloudflare product from this repository without a later
-approval. Production D1 exists. The public Worker is not currently
-deployed.
+approval. Production D1 exists. Remote Workers KV is **not** created.
+The public Worker is not currently deployed.
 
 This is the main production deployment planning reference for Project X
 Website Service. Related documents:
@@ -32,10 +32,11 @@ Do not treat this document as a billing guarantee.
 | Public runtime | Local only, `npm run dev:public` → http://localhost:3003 |
 | Remote Worker | NONE (Milestone 25 test Worker deleted) |
 | Remote D1 | `projectx-websites-production` (empty business tables) |
+| Remote KV | `projectx-websites-media` (`f95b658d6c914e0fbec1f06bec4b6e4d`) |
 | Remote R2 | NONE |
 | Custom Domains / DNS | NONE |
 | Workers Paid | NONE |
-| Payment information | NONE (must stay that way until a later gate accepts R2 checkout) |
+| Payment information | NONE |
 | Cost | **$0** |
 
 Public OpenNext artifact gzip size (Milestone 19 / 25, local dry-run):
@@ -314,7 +315,8 @@ Milestone 21.
 |---|---|---|
 | Public Worker | `projectx-websites-public` | — |
 | Production D1 | `projectx-websites-production` | `DB` |
-| Production R2 | `projectx-websites-media` | `MEDIA` |
+| Production KV (V1 media) | `projectx-websites-media` | `MEDIA_KV` |
+| Production R2 | rejected for V1 | dormant `MEDIA` code only |
 
 Local Wrangler placeholders remain:
 
@@ -720,9 +722,9 @@ Do **not** onboard a real Client until ChatGPT approves that step.
 | Environment | D1 | Media | Command |
 |---|---|---|---|
 | Local admin | Local emulator | Filesystem | `npm run dev` (3002) |
-| Production admin-management | Remote `projectx-websites-production` | Filesystem (R2 not approved) | `npm run admin:production` (3004) |
-| Local public | Same local emulator | Filesystem / local R2 emulator | `npm run dev:public` / `preview:cloudflare:public` |
-| Production public | Remote `projectx-websites-production` | **No R2** (`/media` 404 until R2 is approved) | `public-runtime/wrangler.production.jsonc` (Worker not currently deployed) |
+| Production admin-management | Remote `projectx-websites-production` | Remote `MEDIA_KV` (`projectx-websites-media`) | `npm run admin:production` (3004) |
+| Local public | Same local emulator | Filesystem | `npm run dev:public` / `preview:cloudflare:public` |
+| Production public | Remote `projectx-websites-production` | Remote `MEDIA_KV` (Worker not currently deployed) | `public-runtime/wrangler.production.jsonc` |
 
 ---
 
@@ -732,9 +734,11 @@ Public runtime **does not require** admin secrets:
 
 - Not required: `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`,
   `AUTH_SESSION_SECRET`
-- Bindings: `DB` required. `MEDIA` is required only after R2 is approved.
-  Milestone 25 production-public has **no MEDIA**; `/media` returns 404.
-  OpenNext still uses `ASSETS` / `WORKER_SELF_REFERENCE`.
+- Bindings: `DB` required. `MEDIA_KV` is bound in production configs to
+  `projectx-websites-media`. Missing `MEDIA_KV` at runtime makes
+  `/media` return 404. OpenNext still uses `ASSETS` /
+  `WORKER_SELF_REFERENCE`.
+  R2 is not a V1 production dependency.
 - `NEXTJS_ENV` is a non-secret environment flag
 
 Client Review authorization is the unguessable token stored in D1, plus

@@ -1,8 +1,10 @@
 import "server-only";
 import type { D1Database } from "@cloudflare/workers-types";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import type { MediaObjectStore } from "@/lib/website-media/r2-storage";
 import { isProductionAdminMode } from "@/lib/runtime/production-admin";
+import type { MediaKvNamespace } from "@/lib/website-media/kv-storage";
+import { MISSING_MEDIA_KV_BINDING } from "@/lib/website-media/provider";
+import type { MediaObjectStore } from "@/lib/website-media/r2-storage";
 
 const MISSING_DB_BINDING =
   "Missing required Cloudflare D1 binding `DB`. The application cannot use a silent database fallback.";
@@ -17,6 +19,8 @@ let productionRemoteDbVerified = false;
 
 type AppCloudflareEnv = CloudflareEnv & {
   DB?: D1Database;
+  MEDIA_KV?: MediaKvNamespace;
+  // Dormant R2 adapter only. V1 production media is Workers KV.
   MEDIA?: MediaObjectStore;
   // Admin-only. The public runtime must boot without these.
   ADMIN_USERNAME?: string;
@@ -67,12 +71,25 @@ export async function getRequiredDatabaseBinding(): Promise<D1Database> {
   return env.DB;
 }
 
-export async function hasMediaBinding(): Promise<boolean> {
-  if (!isCloudflareWorkersRuntime()) {
+export async function hasMediaKvBinding(): Promise<boolean> {
+  if (!isCloudflareWorkersRuntime() && !isProductionAdminMode()) {
     return true;
   }
   const env = await getCloudflareEnv();
-  return Boolean(env.MEDIA);
+  return Boolean(env.MEDIA_KV);
+}
+
+export async function hasMediaBinding(): Promise<boolean> {
+  return hasMediaKvBinding();
+}
+
+export async function getRequiredMediaKvBinding(): Promise<MediaKvNamespace> {
+  const env = await getCloudflareEnv();
+  if (!env.MEDIA_KV) {
+    console.error(MISSING_MEDIA_KV_BINDING);
+    throw new Error(MISSING_MEDIA_KV_BINDING);
+  }
+  return env.MEDIA_KV;
 }
 
 export async function getRequiredMediaBinding(): Promise<MediaObjectStore> {

@@ -1,5 +1,6 @@
 import { getDb } from "@/lib/db";
 import { getWebsiteMediaPublicPath } from "@/lib/website-media/paths";
+import { contentReferencesMedia } from "@/lib/website-media/references";
 import {
   isWebsiteMediaMimeType,
   type WebsiteMedia,
@@ -137,4 +138,59 @@ export async function createWebsiteMedia(
   }
 
   return created;
+}
+
+export async function websiteMediaIsReferenced(
+  websiteId: string,
+  mediaId: string,
+): Promise<boolean> {
+  if (!isWebsiteId(websiteId) || !isWebsiteId(mediaId)) {
+    return false;
+  }
+
+  const db = await getDb();
+  const sources = await db
+    .prepare(
+      `SELECT content_json AS content_json
+       FROM websites
+       WHERE id = ?
+       UNION ALL
+       SELECT content_json
+       FROM website_publications
+       WHERE website_id = ?
+       UNION ALL
+       SELECT content_json
+       FROM website_versions
+       WHERE website_id = ?`,
+    )
+    .bind(websiteId, websiteId, websiteId)
+    .all<{ content_json: string }>();
+
+  for (const row of sources.results ?? []) {
+    if (contentReferencesMedia(row.content_json, mediaId)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export async function deleteWebsiteMediaForWebsite(
+  websiteId: string,
+  mediaId: string,
+): Promise<boolean> {
+  if (!isWebsiteId(websiteId) || !isWebsiteId(mediaId)) {
+    return false;
+  }
+
+  const db = await getDb();
+  const result = await db
+    .prepare(
+      `DELETE FROM website_media
+       WHERE id = ? AND website_id = ?`,
+    )
+    .bind(mediaId, websiteId)
+    .run();
+
+  return (result.meta?.changes ?? 0) > 0;
 }

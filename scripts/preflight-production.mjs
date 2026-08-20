@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PLACEHOLDER_D1_ID = "00000000-0000-4000-8000-000000000001";
+const PLACEHOLDER_KV_ID = "00000000-0000-4000-8000-000000000003";
+const PRODUCTION_KV_ID = "f95b658d6c914e0fbec1f06bec4b6e4d";
 const UNPROVISIONED_R2 = "projectx-website-media-unprovisioned";
 const EXPECTED_MIGRATIONS = [
   "0001_create_clients.sql",
@@ -131,6 +133,21 @@ for (const rel of wranglerFiles) {
     fail(`${rel} uses unprovisioned R2 name`);
   }
   if (
+    text.includes('"binding": "MEDIA_KV"') &&
+    text.includes(PLACEHOLDER_KV_ID) &&
+    /"remote"\s*:\s*false/.test(text)
+  ) {
+    pass(`${rel} uses local MEDIA_KV placeholder`);
+  } else {
+    fail(`${rel} uses local MEDIA_KV placeholder`, "missing local KV binding");
+  }
+  const kvBlock = /"kv_namespaces"\s*:\s*\[[\s\S]*?\]/.exec(text)?.[0] || "";
+  if (/"remote"\s*:\s*true/.test(kvBlock)) {
+    fail(`${rel} local KV is not remote`, "kv remote: true found");
+  } else {
+    pass(`${rel} local KV is not remote`);
+  }
+  if (
     /ADMIN_USERNAME|ADMIN_PASSWORD_HASH|AUTH_SESSION_SECRET/.test(text)
   ) {
     fail(`${rel} has no admin secrets`, "admin secret name found");
@@ -158,6 +175,18 @@ if (/r2_buckets/.test(productionAdmin)) {
   fail("wrangler.production-admin.jsonc has no R2", "r2_buckets found");
 } else {
   pass("wrangler.production-admin.jsonc has no R2");
+}
+if (
+  /"binding"\s*:\s*"MEDIA_KV"/.test(productionAdmin) &&
+  productionAdmin.includes(PRODUCTION_KV_ID) &&
+  /"remote"\s*:\s*true/.test(productionAdmin)
+) {
+  pass("wrangler.production-admin.jsonc binds remote production MEDIA_KV");
+} else {
+  fail(
+    "wrangler.production-admin.jsonc binds remote production MEDIA_KV",
+    "missing MEDIA_KV, production KV id, or remote:true",
+  );
 }
 if (/ADMIN_USERNAME|ADMIN_PASSWORD_HASH|AUTH_SESSION_SECRET/.test(productionAdmin)) {
   fail("wrangler.production-admin.jsonc has no admin secrets", "admin secret name found");
@@ -188,6 +217,18 @@ if (/r2_buckets/.test(productionPublic)) {
 } else {
   pass("public-runtime/wrangler.production.jsonc has no R2");
 }
+if (
+  /"binding"\s*:\s*"MEDIA_KV"/.test(productionPublic) &&
+  productionPublic.includes(PRODUCTION_KV_ID) &&
+  /"remote"\s*:\s*true/.test(productionPublic)
+) {
+  pass("public-runtime/wrangler.production.jsonc binds remote production MEDIA_KV");
+} else {
+  fail(
+    "public-runtime/wrangler.production.jsonc binds remote production MEDIA_KV",
+    "missing MEDIA_KV, production KV id, or remote:true",
+  );
+}
 if (/ADMIN_USERNAME|ADMIN_PASSWORD_HASH|AUTH_SESSION_SECRET/.test(productionPublic)) {
   fail("public-runtime/wrangler.production.jsonc has no admin secrets", "admin secret name found");
 } else {
@@ -199,6 +240,11 @@ for (const rel of ["wrangler.jsonc", "public-runtime/wrangler.jsonc"]) {
     fail(`${rel} stays off production D1`, "production UUID found");
   } else {
     pass(`${rel} stays off production D1`);
+  }
+  if (read(rel).includes(PRODUCTION_KV_ID)) {
+    fail(`${rel} stays off production MEDIA_KV`, "production KV id found");
+  } else {
+    pass(`${rel} stays off production MEDIA_KV`);
   }
 }
 
@@ -238,7 +284,8 @@ if (
   typeof packageJson.scripts?.dev === "string" &&
   packageJson.scripts.dev.includes("db:migrate") &&
   packageJson.scripts.dev.includes("--port 3002") &&
-  !packageJson.scripts.dev.includes("production")
+  !packageJson.scripts.dev.includes("production") &&
+  !packageJson.scripts.dev.includes("remote")
 ) {
   pass("npm run dev remains local-only on port 3002");
 } else {

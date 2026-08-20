@@ -6,6 +6,7 @@ export type MediaObjectStore = {
   get(
     key: string,
   ): Promise<{ arrayBuffer(): Promise<ArrayBuffer> } | null>;
+  delete(key: string): Promise<unknown>;
 };
 
 export function createR2WebsiteMediaStorage(
@@ -25,6 +26,11 @@ export function createR2WebsiteMediaStorage(
       }
 
       return new Uint8Array(await object.arrayBuffer());
+    },
+
+    async delete(websiteId, storedFilename) {
+      const key = getWebsiteMediaObjectKey(websiteId, storedFilename);
+      await bucket.delete(key);
     },
   };
 }

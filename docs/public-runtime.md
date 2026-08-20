@@ -79,7 +79,7 @@ Worker.
 | `Host: linden.localhost` `/` | Linden **active** publication HTML |
 | Unknown or malformed hostname `/` | Public 404, fail closed |
 | `/review/{token}` | Saved-draft Client Review from stored `review_html` (valid token) or generic 404 |
-| `/media/{id}` | Same Milestone 18 authorization against the **active** publication (or review draft), no public R2 URL. Production-public without `MEDIA` returns 404. |
+| `/media/{id}` | Same Milestone 18 authorization against the **active** publication (or review draft). No public KV or R2 URL. Production-public without `MEDIA_KV` returns 404. |
 | `/publication-runtime.css` | Shared generated template stylesheet |
 | `/templates/{service\|restaurant\|salon}-modern-01/*` | Bundled public assets |
 | `/login`, `/clients`, `/websites`, `/templates` admin, `/settings`, `/support-requests`, `/site/...`, `/published/...` | 404 / unavailable (not admin login) |
@@ -88,13 +88,15 @@ Middleware never requires an admin cookie. It never runs PBKDF2.
 
 ## Bindings
 
-Same local placeholders as the admin wrangler config. Future production
-still uses **one shared D1** and **one shared R2**.
+Same local placeholders as the admin wrangler config. V1 production
+uses **one shared D1** and **one shared Workers KV** namespace. R2 is
+dormant and not a V1 production dependency.
 
 | Binding | Purpose |
 |---|---|
 | `DB` | `website_domains`, Website identity/status, publications, media metadata, review sessions/feedback |
-| `MEDIA` | Read Client website media |
+| `MEDIA_KV` | Read Client website media (production). Local `npm run dev` / `npm run dev:public` use the filesystem instead. |
+| `MEDIA` | Dormant local R2 emulator only. Not used by V1 production. |
 
 Public rendering does not need media upload. The storage interface still
 has `write` for adapter compatibility; no public route invokes it.

@@ -17,13 +17,27 @@ function startsWith(bytes: Uint8Array, signature: number[]): boolean {
   return signature.every((value, index) => bytes[index] === value);
 }
 
-function looksLikeSvg(bytes: Uint8Array): boolean {
-  const head = new TextDecoder("utf-8", { fatal: false })
+function decodeHead(bytes: Uint8Array): string {
+  return new TextDecoder("utf-8", { fatal: false })
     .decode(bytes.slice(0, 256))
     .replace(/^\uFEFF/, "")
     .trimStart()
     .toLowerCase();
+}
+
+function looksLikeSvg(bytes: Uint8Array): boolean {
+  const head = decodeHead(bytes);
   return head.startsWith("<svg") || (head.startsWith("<?xml") && head.includes("<svg"));
+}
+
+function looksLikeHtmlOrScript(bytes: Uint8Array): boolean {
+  const head = decodeHead(bytes);
+  return (
+    head.startsWith("<!doctype html") ||
+    head.startsWith("<html") ||
+    head.startsWith("<script") ||
+    head.startsWith("<?php")
+  );
 }
 
 export function inspectWebsiteImageBytes(
@@ -31,6 +45,10 @@ export function inspectWebsiteImageBytes(
 ): InspectedWebsiteImage | { error: string } {
   if (looksLikeSvg(bytes)) {
     return { error: "SVG uploads are not accepted." };
+  }
+
+  if (looksLikeHtmlOrScript(bytes)) {
+    return { error: "HTML and script uploads are not accepted." };
   }
 
   if (startsWith(bytes, [0x47, 0x49, 0x46, 0x38])) {

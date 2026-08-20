@@ -7,9 +7,11 @@ Project X Website Service.
 command. Milestone 25 proved the published-Website path on Workers
 Free (Host → production D1 → stored `public_html`). Milestone 26
 proved Client Review on stored `websites.review_html` (saved draft)
-for the initial Workers Free workflow. Config remains in
+for the initial Workers Free workflow. Milestone 27 selects Workers KV
+as V1 production media. R2 is rejected for V1 (usage-based overage,
+no hard dollar cap). Config remains in
 `public-runtime/wrangler.production.jsonc`. It does not authorize a
-Client launch, R2, or Custom Domains.**
+Client launch, R2, Custom Domains, or a public Worker deploy.**
 
 Production D1 details: [`docs/production-admin.md`](production-admin.md).
 Production-public runtime: [`docs/production-public.md`](production-public.md).
@@ -27,13 +29,14 @@ Hosting/cost research: [`docs/deployment-decision.md`](deployment-decision.md).
 
 - No remote Cloudflare Worker
 - Remote D1: `projectx-websites-production` (empty business tables, migrations 0001–0012)
+- Remote KV: `projectx-websites-media` (`f95b658d6c914e0fbec1f06bec4b6e4d`), not yet used
 - No remote R2
 - No Cloudflare Pages
 - No domains or DNS changes
 - No paid services enabled
 - Current cost: $0
 - Admin application: `npm run dev` on port 3002 (local D1 only)
-- Production admin: `npm run admin:production` on port 3004 (remote D1 only)
+- Production admin: `npm run admin:production` on port 3004 (remote D1 + remote MEDIA_KV)
 - Public runtime local: `npm run dev:public` on port 3003
 - Production-public Worker: **not deployed**. Config lives in
   `public-runtime/wrangler.production.jsonc`. Published-Website CPU and
@@ -60,6 +63,8 @@ Admin (`npm run dev`):
 - Database: local Wrangler D1 emulator (`DB` binding, `--local` only)
 - Media: local filesystem under `storage/website-media/`
 - Website content continues to reference `/media/{id}` only
+- Local Wrangler KV/R2 bindings stay `remote: false`. `npm run dev`
+  never uses remote KV.
 
 Production admin (`npm run admin:production`):
 
@@ -67,13 +72,14 @@ Production admin (`npm run admin:production`):
 - Remote `projectx-websites-production` only (`wrangler.production-admin.jsonc`)
 - No migrate/seed/backfill/reset on startup
 - Persistent production-management banner
-- Media remains local filesystem (R2 is not approved)
+- Production media is Workers KV (`MEDIA_KV` → `projectx-websites-media`).
+  Missing `MEDIA_KV` fails closed (no filesystem writes, no R2).
 
 Public runtime (`npm run dev:public`):
 
 - Separate Next.js app in `public-runtime/` at [http://localhost:3003](http://localhost:3003)
 - Hostname published sites, Client Review, `/media/{id}`, template assets
-- Same local D1 persist and filesystem/R2-emulator media
+- Same local D1 persist and filesystem media
 - Does not require admin credentials and does not run PBKDF2
 
 ### Future production
@@ -82,15 +88,18 @@ Public runtime (`npm run dev:public`):
   from `npm run build:cloudflare:public` only
 - **Admin:** remains local/private until a later host is approved
 - Database: one shared Cloudflare D1 (`DB`)
-- Client media: one shared Cloudflare R2 (`MEDIA`)
-- Same `/media/{id}` content model; the application never stores raw R2 URLs
-  in Website, Version, or Publication JSON
+- Client media: one shared Workers KV namespace (`MEDIA_KV`), title
+  `projectx-websites-media`. R2 remains dormant code only and is not a
+  V1 production dependency.
+- Same `/media/{id}` content model; the application never stores raw KV
+  or R2 URLs in Website, Version, or Publication JSON
 
 The application/domain layer uses centralized adapters:
 
 - `getDb()` / `getDatabase()` → D1 binding
-- `getWebsiteMediaStorage()` / `getMediaStorage()` → filesystem locally, R2
-  in the Cloudflare Workers runtime
+- `getWebsiteMediaStorage()` / `getMediaStorage()` → filesystem for
+  `npm run dev` / `npm run dev:public`; Workers KV in the Cloudflare
+  Workers runtime and in production admin
 
 Repositories, Server Actions, and routes must not look up `getPlatformProxy()`,
 `process.env.NODE_ENV`, or filesystem paths themselves.
@@ -99,17 +108,36 @@ Repositories, Server Actions, and routes must not look up `getPlatformProxy()`,
 
 A production Worker must never silently fall back to local filesystem storage.
 
-- Local `next dev`: filesystem media is allowed
-- Cloudflare Workers runtime (including local `npm run preview:cloudflare`):
-  R2 binding `MEDIA` is required
-- Missing `DB` or `MEDIA` in the Workers runtime: clear server error, no
-  silent fallback
+- Local `next dev`: filesystem media is allowed. Remote KV is forbidden.
+- Cloudflare Workers runtime and production admin: KV binding
+  `MEDIA_KV` is required. Missing binding fails closed.
+- Public `/media/{id}` with no `MEDIA_KV`: generic 404, not 500, and
+  not R2.
+- Missing `DB` in the Workers runtime: clear server error, no silent
+  fallback
 
 Local Wrangler / OpenNext preview uses emulated bindings only. It does not
-create remote D1 or R2 resources. Preview media state is isolated from the
-`storage/` filesystem used by `npm run dev`. To exercise `/media/{id}` in
-preview, copy bytes into the local R2 emulator (`wrangler r2 object put
-... --local`). Do not use `--remote`.
+create remote D1, KV, or R2 resources. `npm run preview:cloudflare`
+uses the local KV emulator, which is separate from `storage/` used by
+`npm run dev`. Do not set `"remote": true` on local KV.
+
+## Media delete and consistency
+
+KV and D1 are not transactional.
+
+- **Upload:** write the object, then insert `website_media`. If the
+  insert fails, delete the newly written object where practical.
+- **Delete:** admin auth, Website match, and refuse if the image is
+  referenced by the draft, a saved version, or any publication. Delete
+  the D1 row first, then the object. If object delete fails, the row is
+  already gone so `/media/{id}` is unauthorized; the object may be
+  orphaned.
+- **Serve:** D1 metadata, then object read. Missing object → generic 404.
+- **Cache:** `Cache-Control: private, max-age=3600` for all media,
+  including published. Shared/immutable caching is not used for the
+  first Client because authorization is per-request.
+- **Content-Disposition:** `inline` plus the sanitized original
+  filename. Authorization is unchanged.
 
 OpenNext currently warns that it is not fully compatible with Windows and
 recommends WSL for optimal production-target runtime behavior. Milestone 15
@@ -158,10 +186,11 @@ A later deployment milestone must explicitly:
 4. Create/configure production D1 (the current `database_id` in
    `wrangler.jsonc` is a **local placeholder**, not a real database)
 5. Apply migrations `0001`–`0010` remotely
-6. Create/configure production R2 for Client media (the current
-   `bucket_name` is an **unprovisioned local identifier**)
-7. Bind `DB` and `MEDIA`
-8. Copy/move required production media into R2 using the object key
+6. Create/configure production Workers KV for Client media (proposed
+   title `projectx-websites-media`, binding `MEDIA_KV`). Do **not**
+   create R2 for V1.
+7. Bind `DB` and `MEDIA_KV`
+8. Copy/move required production media into KV using the object key
    `{websiteId}/{storedFilename}`
 9. Configure production environment values (no secrets in git)
 10. Decide whether to add OpenNext incremental-cache R2 / Images (both can
@@ -201,7 +230,7 @@ Complete only in a later deployment milestone after explicit approval.
 - [ ] Worker resource created
 - [ ] production D1 created
 - [ ] migrations applied remotely
-- [ ] R2 created/enabled
+- [ ] Workers KV created/enabled (V1 media; R2 rejected)
 - [ ] bindings configured
 - [ ] secrets configured
 - [ ] **admin auth completed** (implemented locally in Milestone 16; production secrets are not created yet)

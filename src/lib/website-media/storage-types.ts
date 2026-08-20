@@ -8,4 +8,5 @@ export type WebsiteMediaStorage = {
     websiteId: string,
     storedFilename: string,
   ): Promise<Uint8Array | null>;
+  delete(websiteId: string, storedFilename: string): Promise<void>;
 };

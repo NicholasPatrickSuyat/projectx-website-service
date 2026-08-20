@@ -1,18 +1,24 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { isCloudflareWorkersRuntime } from "@/lib/runtime/env";
+import { isProductionAdminMode } from "@/lib/runtime/production-admin";
 import {
   STORED_FILENAME_PATTERN,
   getWebsiteMediaObjectKey,
 } from "@/lib/website-media/object-key";
+import {
+  FILESYSTEM_PRODUCTION_ADMIN_ERROR,
+  FILESYSTEM_WORKERS_ERROR,
+} from "@/lib/website-media/provider";
 import type { WebsiteMediaStorage } from "@/lib/website-media/storage-types";
 import { isWebsiteId } from "@/lib/websites/validation";
 
 function assertLocalFilesystemAllowed() {
   if (isCloudflareWorkersRuntime()) {
-    throw new Error(
-      "Local filesystem media storage cannot run in the Cloudflare Workers runtime.",
-    );
+    throw new Error(FILESYSTEM_WORKERS_ERROR);
+  }
+  if (isProductionAdminMode()) {
+    throw new Error(FILESYSTEM_PRODUCTION_ADMIN_ERROR);
   }
 }
 
@@ -64,6 +70,24 @@ export function getLocalWebsiteMediaStorage(): WebsiteMediaStorage {
           error.code === "ENOENT"
         ) {
           return null;
+        }
+        throw error;
+      }
+    },
+
+    async delete(websiteId, storedFilename) {
+      assertLocalFilesystemAllowed();
+      const filePath = resolveStoredFile(websiteId, storedFilename);
+      try {
+        await unlink(filePath);
+      } catch (error) {
+        if (
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          error.code === "ENOENT"
+        ) {
+          return;
         }
         throw error;
       }

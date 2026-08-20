@@ -1,7 +1,8 @@
 # Production public runtime
 
-Admin stays local/private. R2 is not approved. Custom Domains and DNS
-are not approved. This is not a Client launch.
+Admin stays local/private. R2 is rejected for V1. Workers KV is the
+approved V1 media provider (`projectx-websites-media` / `MEDIA_KV`).
+Custom Domains and DNS are not approved. This is not a Client launch.
 
 Config: `public-runtime/wrangler.production.jsonc`. Local
 `npm run dev:public` still uses `public-runtime/wrangler.jsonc`
@@ -63,6 +64,7 @@ File: `public-runtime/wrangler.production.jsonc`
 - Worker name: `projectx-websites-public`
 - `workers_dev`: true for future controlled tests only
 - D1: `projectx-websites-production` (`remote: true`)
+- MEDIA_KV: `projectx-websites-media` (`f95b658d6c914e0fbec1f06bec4b6e4d`, `remote: true`)
 - ASSETS / WORKER_SELF_REFERENCE: OpenNext
 - **No R2 / MEDIA**
 - No admin secrets
@@ -72,10 +74,12 @@ Temporary Milestone 25 and Milestone 26 Workers were deleted after
 their CPU samples. The config remains. The Worker is not currently
 deployed.
 
-## Media without R2
+## Media
 
-`/media/{id}` on the production-public Worker returns **404** when the
-`MEDIA` binding is absent. It must not create or access R2.
+V1 production media is Workers KV (`MEDIA_KV`), not R2. `/media/{id}`
+returns **404** if `MEDIA_KV` is absent at runtime. It must not create or
+access R2, and it must not fall back to disk. The Worker is not currently
+deployed.
 
 ## CPU results
 

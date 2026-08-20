@@ -5,6 +5,7 @@ import { SERVICE_MODERN_01_DEMO_ASSETS, type DemoAsset } from "@/lib/templates/d
 import {
   listWebsiteMediaAction,
   uploadWebsiteMediaAction,
+  deleteWebsiteMediaAction,
 } from "@/lib/website-media/actions";
 import { formatWebsiteMediaSize, type WebsiteMedia, WEBSITE_MEDIA_MAX_BYTES } from "@/lib/website-media/types";
 
@@ -29,6 +30,7 @@ export function MediaLibraryModal({
   const [media, setMedia] = useState<WebsiteMedia[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -99,6 +101,21 @@ export function MediaLibraryModal({
     onSelect(result.media.publicPath);
   }
 
+  async function onDelete(item: WebsiteMedia) {
+    setDeletingId(item.id);
+    setError(null);
+    const result = await deleteWebsiteMediaAction(websiteId, item.id);
+    setDeletingId(null);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    setMedia((current) => current.filter((entry) => entry.id !== item.id));
+    if (selectedSrc === item.publicPath) {
+      onSelect("");
+    }
+  }
+
   if (!open) {
     return null;
   }
@@ -127,8 +144,9 @@ export function MediaLibraryModal({
             </h2>
             <p className="mt-1 text-sm leading-5 text-muted">
               Upload or reuse images for this website. JPEG, PNG, and WebP up to{" "}
-              {formatWebsiteMediaSize(WEBSITE_MEDIA_MAX_BYTES)}. Removing an
-              image from a field does not delete the upload.
+              {formatWebsiteMediaSize(WEBSITE_MEDIA_MAX_BYTES)}. Delete only
+              unused uploads. Images still used in the draft, a saved version,
+              or a publication are kept.
             </p>
             {selectedLabel ? (
               <p className="mt-2 text-xs text-muted">
@@ -214,6 +232,14 @@ export function MediaLibraryModal({
                           {formatWebsiteMediaSize(item.fileSize)}
                           {selected ? " · Selected" : ""}
                         </span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={deletingId === item.id}
+                        onClick={() => void onDelete(item)}
+                        className="mt-1 w-full rounded-lg border border-border px-2 py-1 text-[11px] font-medium text-muted hover:border-rose-300 hover:text-rose-800 disabled:opacity-60"
+                      >
+                        {deletingId === item.id ? "Deleting..." : "Delete"}
                       </button>
                     </li>
                   );

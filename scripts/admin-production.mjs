@@ -7,6 +7,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const configRel = "wrangler.production-admin.jsonc";
 const varsRel = ".dev.vars.production-admin";
 const productionId = "db47d1af-bc9c-47f0-ad8a-1377971dbd24";
+const productionKvId = "f95b658d6c914e0fbec1f06bec4b6e4d";
 const placeholderId = "00000000-0000-4000-8000-000000000001";
 const port = "3004";
 
@@ -58,6 +59,20 @@ if (config.workers_dev === true) {
 if (Array.isArray(config.r2_buckets) && config.r2_buckets.length > 0) {
   fail("production-admin config must not bind R2");
 }
+const namespaces = Array.isArray(config.kv_namespaces) ? config.kv_namespaces : [];
+const kv = namespaces[0];
+if (!kv) {
+  fail("production-admin config must bind MEDIA_KV");
+}
+if (kv.binding !== "MEDIA_KV") {
+  fail("production KV binding must be MEDIA_KV");
+}
+if (kv.id !== productionKvId) {
+  fail("production KV ID does not match projectx-websites-media");
+}
+if (kv.remote !== true) {
+  fail("production MEDIA_KV must set remote: true");
+}
 
 const varsPath = path.join(root, varsRel);
 if (!fs.existsSync(varsPath)) {
@@ -75,6 +90,7 @@ console.log("You are about to edit live production data.");
 console.log(`Port: ${port}`);
 console.log("Config: wrangler.production-admin.jsonc");
 console.log("D1: projectx-websites-production (remote)");
+console.log("KV: projectx-websites-media (remote MEDIA_KV)");
 console.log("R2: none");
 console.log("Startup will not migrate, seed, backfill, or reset.");
 
